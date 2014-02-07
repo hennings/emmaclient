@@ -1,6 +1,6 @@
 <?php
 date_default_timezone_set("Europe/Stockholm");
-$lang = "sv";
+$lang = "no";
 
 if (isset($_GET['lang']))
  $lang = $_GET['lang'];
@@ -213,6 +213,7 @@ function changeFontSize(val)
 <h1 class="categoriesheader" style="margin-bottom: 4px; color: black"><?=$currentComp->CompName()?> [<?=$currentComp->CompDate()?>]</h1>
 <?php }?>
 <?php if (!$isSingleClass && !$isSingleClub) {?>
+			| <?php echo($lang == "no" ? "<img src='images/no.png' border='0'/> Norsk" : "<a href=\"?lang=no&comp=".$_GET['comp']."\" style='text-decoration: none'><img src='images/no.png' border='0'/> Norsk</a>")?>
 			| <?php echo($lang == "sv" ? "<img src='images/se.png' border='0'/> Svenska" : "<a href=\"?lang=sv&comp=".$_GET['comp']."\" style='text-decoration: none'><img src='images/se.png' border='0'/> Svenska</a>")?>
 			   	   			| <?php echo($lang == "en" ? "<img src='images/en.png' border='0'/> English" : "<a href=\"?lang=en&comp=".$_GET['comp']."\" style='text-decoration: none'><img src='images/en.png' border='0'/> English</a>")?>
 			| <?php echo($lang == "fi" ? "<img src='images/fi.png' border='0'/> Suomeksi" : "<a href=\"?lang=fi&comp=".$_GET['comp']."\" style='text-decoration: none'><img src='images/fi.png' border='0'/> Suomeksi</a>")?> |
