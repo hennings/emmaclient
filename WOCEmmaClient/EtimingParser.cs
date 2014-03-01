@@ -69,30 +69,37 @@ namespace LiveResults.Client
                     string paramOper = "?";
 
                     /*Detect eventtype*/
+                    bool isRelay = IsThisEventRelay(cmd);
 
-                    bool isRelay = false;
-                    string eventTypeSql = "SELECT kid FROM arr";
-                    cmd.CommandText = eventTypeSql;
-                    cmd.Prepare();
-                    IDataReader reader = cmd.ExecuteReader();
+                    string baseCommand;
+                    string splitbaseCommand;
 
-                    while (reader.Read())
+                    if (isRelay)
                     {
-                        if (reader[0] != null && reader[0] != DBNull.Value)
-                        {
-                            int kid = Convert.ToInt16(reader[0]);
-                            FireLogMsg("Event type is " + kid);
-                            if (kid == 3) { 
-                                isRelay = true; 
-                            }
-                        }
+                        baseCommand = "SELECT n.timechanged, n.id, n.ename as lastname,r.teamno,n.races as restart,n.name as firstname , n.lisens,n.startno,c.class as classname, n.ecard,n.status,n.times, n.place, n.info as shootresult, n.rank as relayteamno, n.seed, n.starttime, n.totaltime, n.pnr, n.intime, (intime-starttime) as mtime,  t.name as teamname  " +
+                            "FROM Name n, Class c, Team t, Relay r  " +
+                            "WHERE n.class=c.code and t.code=n.team AND n.timechanged>? AND n.rank=r.lgstartno  " +
+                            "ORDER BY (intime-starttime) ASC, startno";
+
+                        splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.races as restart,r.teamno, n.name as firstname , n.lisens,n.startno,c.class as classname, n.ecard,n.status,m.strtid,n.rank as relayteamno, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, (m.mintime-starttime) as mtime, t.name as teamname " +
+                            "FROM Name n, Class c, Team t, Mellom m, Relay r " +
+                            "WHERE n.id=m.id and n.class=c.code and t.code=n.team AND mchanged>? AND n.rank=r.lgstartno " +
+                            "ORDER BY (mintime-starttime) ASC, startno";
+
                     }
-                    reader.Close();
+                    else
+                    {
+                        baseCommand = "SELECT timechanged, n.id, n.ename as lastname,n.name as firstname , n.lisens,n.startno,c.class as classname, n.ecard,n.status,n.times, n.place, n.info as shootresult, n.rank, n.seed, n.starttime, n.totaltime, n.pnr, n.intime, (intime-starttime) as mtime,  t.name as teamname  " +
+                                "FROM Name n, Class c, Team t  " +
+                                "WHERE n.class=c.code and t.code=n.team AND timechanged>?  " +
+                                "ORDER BY (intime-starttime) ASC, startno";
 
+                        splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.name as firstname , n.lisens,n.startno,c.class as classname, n.ecard,n.status,m.strtid,n.rank, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, (m.mintime-starttime) as mtime, t.name as teamname " +
+                            "FROM Name n, Class c, Team t, Mellom m " +
+                            "WHERE n.id=m.id and n.class=c.code and t.code=n.team AND mchanged>? " +
+                            "ORDER BY (mintime-starttime) ASC, startno";
+                    }
 
-
-                    string baseCommand = "SELECT timechanged, n.id, n.ename as lastname,n.name as firstname , n.lisens     ,n.startno,c.class as classname, n.ecard,n.status,n.times,                n.place, n.info as shootresult, n.rank, n.seed,                n.starttime, n.totaltime, n.pnr,                n.intime, (intime-starttime) as mtime,  t.name as teamname FROM Name n, Class c, Team t WHERE n.class=c.code and t.code=n.team AND timechanged>?  ORDER BY (intime-starttime) ASC, startno";
-                    string splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.name as firstname , n.lisens     ,n.startno,c.class as classname, n.ecard,n.status,m.strtid,n.rank, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, (m.mintime-starttime) as mtime,  t.name as teamname FROM Name n, Class c, Team t, Mellom m WHERE n.id=m.id and n.class=c.code and t.code=n.team AND mchanged>?  ORDER BY (mintime-starttime) ASC, startno";
 
                     cmd.CommandText = baseCommand; 
                     IDbDataParameter param = cmd.CreateParameter();
@@ -121,7 +128,7 @@ namespace LiveResults.Client
                     double lastDateTime = 0.0;
                     double lastSplitDateTime = 0.0;
                     FireLogMsg("Etiming Monitor thread started");
-                    reader = null;
+                    IDataReader reader = null;
                     while (m_Continue)
                     {
                         string lastRunner = "";
@@ -140,7 +147,7 @@ namespace LiveResults.Client
                             {
                                 Double modDate = 0.0, time = 0.0;
                                 int  runnerID = 0, iStartTime = 0, iTime = 0;
-                                string famName = "", fName = "", club = "", classN = "", status = "";
+                                string famName = "", fName = "", club = "", classN = "", status = "", extra1="", extra2="";
                                 try
                                 {
                                     if (reader[0] != null && reader[0] != DBNull.Value)
@@ -152,7 +159,7 @@ namespace LiveResults.Client
                                     runnerID = Convert.ToInt32(reader["id"].ToString());
 
                                     time = -9;
-                                    if (reader["mtime"] != null && reader["mtime"] != DBNull.Value)
+                                    if (reader["mtime"] != null && reader["mtime"] != DBNull.Value) //  mtime = intime - starttime   - directly in the SQL
                                         time = Convert.ToDouble(reader["mtime"].ToString());
 
                                     famName = (reader["lastname"] as string);
@@ -171,11 +178,33 @@ namespace LiveResults.Client
 
                                     if (isRelay)
                                     {
+                                        if (reader["teamno"] != null && reader["teamno"] != DBNull.Value)
+                                        {
+                                            int teamno = Convert.ToInt16(reader["teamno"]);
+                                            if (teamno > 1) club = club + " " + teamno;
+                                        }
+
                                         classN = classN + "-" + Convert.ToString(reader["seed"]);
+
+                                        if (reader["relayteamno"] != null && reader["relayteamno"] != DBNull.Value)
+                                        {
+                                            extra2 = ""+Convert.ToInt16(reader["relayteamno"]);
+                                        }
+
+                                        if (reader["restart"] != null && reader["restart"] != DBNull.Value)
+                                        {
+                                            extra1 = "" + Convert.ToInt16(reader["restart"]);
+                                        }
+
+                                        
+                                        /*
                                         if (reader["intime"] != DBNull.Value)
                                         {
                                             double ft = Convert.ToDouble(reader["intime"].ToString());
                                         }
+                                         * 
+                                         * How to handle leg 4...?
+                                         */
                                     }
                                     iStartTime = Convert.ToInt32( ((startTime % 1) * 60 * 60 * 24 + 0.1) * 100); // iStartTime = seconds*100
 
@@ -241,7 +270,9 @@ namespace LiveResults.Client
                                             Class = classN,
                                             StartTime = iStartTime,
                                             Time = iTime,
-                                            Status = rstatus
+                                            Status = rstatus,
+                                            Extra1 = extra1,
+                                            Extra2 = extra2
                                         });
                             }
                             reader.Close();
@@ -289,7 +320,7 @@ namespace LiveResults.Client
 
                                     
                                        int  runnerID = 0;
-                                string famName = "", fName = "", club = "", classN = "", status = "";
+                                string famName = "", fName = "", club = "", classN = "", status = "", extra1="", extra2="";
                              
                                     runnerID = Convert.ToInt32(reader["id"].ToString());
 
@@ -298,6 +329,21 @@ namespace LiveResults.Client
 
                                     club = (reader["teamname"] as string);
                                     classN = (reader["classname"] as string);
+
+                                    if (isRelay)
+                                    {
+                                        classN = classN + "-" + Convert.ToString(reader["seed"]);
+
+                                        extra1 = reader["restart"] as string;
+                                        extra2 = reader["relayteamno"] as string;
+
+                                        if (reader["teamno"] != null && reader["teamno"] != DBNull.Value)
+                                        {
+                                            int teamno = Convert.ToInt16(reader["teamno"]);
+                                            if (teamno > 1) club = club + " " + teamno;
+                                        }
+                                    }
+
                                     FireOnResult(new Result()
                                     {
                                         ID = runnerID,
@@ -307,7 +353,9 @@ namespace LiveResults.Client
                                         StartTime = 0,
                                         Time = -2,
                                         Status = 0,
-                                        SplitTimes = times
+                                        SplitTimes = times,
+                                        Extra1 = extra1,
+                                        Extra2 = extra2
                                     });
 
 
@@ -355,6 +403,31 @@ namespace LiveResults.Client
 
                 }
             }
+        }
+
+        private bool IsThisEventRelay(OleDbCommand cmd)
+        {
+            bool isRelay = false;
+            string eventTypeSql = "SELECT kid FROM arr";
+            cmd.CommandText = eventTypeSql;
+            cmd.Prepare();
+            IDataReader readeret = cmd.ExecuteReader();
+
+            while (readeret.Read())
+            {
+                if (readeret[0] != null && readeret[0] != DBNull.Value)
+                {
+                    int kid = Convert.ToInt16(readeret[0]);
+                    FireLogMsg("Event type is " + kid);
+                    if (kid == 3)
+                    {
+                        isRelay = true;
+                    }
+                }
+            }
+            readeret.Close();
+
+            return isRelay;
         }
 
         private static DateTime ParseDateTime(string tTime)

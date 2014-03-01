@@ -37,6 +37,11 @@ namespace LiveResults.Client
             lblInfo.Text = "Export liveresults from OS-Speaker automatic CSV-export";
         }
 
+        private void button4_MouseEnter(object sender, EventArgs e)
+        {
+            lblInfo.Text = "Export liveresults from eTiming";
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             lblInfo.Text = "Export liveresults from OS-Speaker automatic CSV-export";

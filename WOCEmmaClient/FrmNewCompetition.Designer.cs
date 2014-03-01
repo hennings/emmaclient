@@ -94,6 +94,10 @@
             this.buttonEtiming.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.buttonEtiming.UseVisualStyleBackColor = true;
             this.buttonEtiming.Click += new System.EventHandler(this.button1_Click_2);
+            this.buttonEtiming.Enter += new System.EventHandler(this.button4_MouseEnter);
+            this.buttonEtiming.Leave += new System.EventHandler(this.btn_MouseLeave);
+            this.buttonEtiming.MouseEnter += new System.EventHandler(this.button4_MouseEnter);
+            this.buttonEtiming.MouseLeave += new System.EventHandler(this.btn_MouseLeave);
             // 
             // label1
             // 

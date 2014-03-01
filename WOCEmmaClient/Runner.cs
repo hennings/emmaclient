@@ -82,6 +82,8 @@ namespace LiveResults.Client
         private string m_name;
         private string m_club;
         private string m_Class;
+        private string m_extra1;
+        private string m_extra2;
         private int m_Start;
         private int m_Time;
         private int m_Status;
@@ -91,7 +93,7 @@ namespace LiveResults.Client
         public bool StartTimeUpdated;
 
         private Dictionary<int,SplitTime> m_SplitTimes;
-        public Runner(int dbID, string name, string club, string Class)
+        public Runner(int dbID, string name, string club, string Class, string Extra1, string Extra2)
         {
             RunnerUpdated = true;
             ResultUpdated = false;
@@ -102,6 +104,8 @@ namespace LiveResults.Client
             m_name = name;
             m_club = club;
             m_Class = Class;
+            m_extra1 = Extra1;
+            m_extra2 = Extra2;
         }
 
 
@@ -255,6 +259,32 @@ namespace LiveResults.Client
                 m_Time = time;
                 m_Status = status;
                 ResultUpdated = true;
+            }
+        }
+
+        public string Extra1
+        {
+            get
+            {
+                return m_extra1;
+            }
+            set
+            {
+                m_extra1 = value;
+                RunnerUpdated = true;
+            }
+        }
+
+        public string Extra2
+        {
+            get
+            {
+                return m_extra2;
+            }
+            set
+            {
+                m_extra2 = value;
+                RunnerUpdated = true;
             }
         }
 
