@@ -88,7 +88,7 @@ namespace LiveResults.Client
             m_Runners = new Hashtable();
             m_RunnersToUpdate = new List<Runner>();
 
-            m_ConnStr = "Database=" + database + ";Data Source="+server+";User Id="+user+";Password="+pass;
+            m_ConnStr = "Database=" + database + ";Data Source="+server+";User Id="+user+";Password="+pass+";charset=utf8";
             m_Connection = new MySqlConnection(m_ConnStr);
             m_CompID = CompetitionID;
         }
@@ -378,7 +378,7 @@ namespace LiveResults.Client
                                         //Move failing runner last
                                         m_RunnersToUpdate.Add(r);
                                         m_RunnersToUpdate.RemoveAt(0);
-                                        throw new ApplicationException("Could not add runner " + r.Name + ", " + r.Club + ", " + r.Class + " to server due to: " + ee.Message, ee);
+                                        throw new ApplicationException("Could not add runner (schedule update later) " + r.Name + ", " + r.Club + ", " + r.Class + " to server due to: " + ee.Message, ee);
                                     }
                                     cmd.Parameters.Clear();
                                     FireLogMsg("Runner " + r.Name + " updated in DB");

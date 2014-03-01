@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
+using System.Data.OleDb;
 
 namespace LiveResults.Client
 {
@@ -76,17 +77,29 @@ namespace LiveResults.Client
             List<string> urls = new List<string>();
             for (int i = 1; i < lines.Length; i++)
                 urls.Add(lines[i]);
-            /*WocParser wp = new WocParser(new string[] {
-                "http://www.woc2012.ch/results/live/" + comp + "-women-heat-a.json",
-                "http://www.woc2012.ch/results/live/" + comp + "-women-heat-b.json",
-                "http://www.woc2012.ch/results/live/" + comp + "-women-heat-c.json",
-            "http://www.woc2012.ch/results/live/" + comp + "-men-heat-a.json",
-                "http://www.woc2012.ch/results/live/" + comp + "-men-heat-b.json",
-                "http://www.woc2012.ch/results/live/" + comp + "-men-heat-c.json"});*/
             WocParser wp = new WocParser(urls.ToArray());
             monForm.SetParser(wp as IExternalSystemResultParser);
             monForm.CompetitionID = compId;
             monForm.ShowDialog(this);
+        }
+
+        private void button1_Click_2(object sender, EventArgs e)
+        {
+            NewEtimingComp cmp = new NewEtimingComp();
+            cmp.ShowDialog(this);
+
+            /*
+              FrmMonitor monForm = new FrmMonitor();
+            this.Hide();
+            
+            string dsn = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\\usr\\arr\\2014\\test1\\etime.mdb;Persist Security Info=False";
+            OleDbConnection m_Connection = new OleDbConnection(dsn);
+
+            
+            EtimingParser pars = new EtimingParser(m_Connection, 2);
+            monForm.SetParser(pars as IExternalSystemResultParser);
+            monForm.CompetitionID = Convert.ToInt32(1);
+            monForm.ShowDialog(this);*/
         }
     }
 }
