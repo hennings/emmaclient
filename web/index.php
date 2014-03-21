@@ -82,6 +82,7 @@ el.style.backgroundColor = "";
              <tr>
                <td>
                       | <?php echo($lang == "sv" ? "<img src='images/se.png' border='0'/> Svenska" : "<a href=\"?lang=sv\" style='text-decoration: none'><img src='images/se.png' border='0'/> Svenska</a>")?>
+                      | <?php echo($lang == "no" ? "<img src='images/no.png' border='0'/> Norsk" : "<a href=\"?lang=no\" style='text-decoration: none'><img src='images/no.png' border='0'/> Norsk</a>")?>
 			   	   			| <?php echo($lang == "en" ? "<img src='images/en.png' border='0'/> English" : "<a href=\"?lang=en\" style='text-decoration: none'><img src='images/en.png' border='0'/> English</a>")?>
 			| <?php echo($lang == "fi" ? "<img src='images/fi.png' border='0'/> Suomeksi" : "<a href=\"?lang=fi\" style='text-decoration: none'><img src='images/fi.png' border='0'/> Suomeksi</a>")?> |
 
