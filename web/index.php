@@ -2,7 +2,7 @@
 
 date_default_timezone_set("Europe/Stockholm");
 
-include_once("./templates/emmalang_sv.php");
+include_once("./templates/emmalang_no.php");
 	include_once("./templates/classEmma.class.php");
    $lang = "en";
    if (isset($_GET['lang']) && $_GET['lang'] != "")
@@ -81,6 +81,7 @@ el.style.backgroundColor = "";
        <table border="0" cellpadding="0" cellspacing="0" width="600">
              <tr>
                <td>
+			| <?php echo($lang == "no" ? "<img src='images/no.png' border='0'/> Norsk" : "<a href=\"?lang=no\" style='text-decoration: none'><img src='images/no.png' border='0'/> Norsk</a>")?> |
                       | <?php echo($lang == "sv" ? "<img src='images/se.png' border='0'/> Svenska" : "<a href=\"?lang=sv\" style='text-decoration: none'><img src='images/se.png' border='0'/> Svenska</a>")?>
                       | <?php echo($lang == "no" ? "<img src='images/no.png' border='0'/> Norsk" : "<a href=\"?lang=no\" style='text-decoration: none'><img src='images/no.png' border='0'/> Norsk</a>")?>
 			   	   			| <?php echo($lang == "en" ? "<img src='images/en.png' border='0'/> English" : "<a href=\"?lang=en\" style='text-decoration: none'><img src='images/en.png' border='0'/> English</a>")?>
@@ -92,7 +93,7 @@ el.style.backgroundColor = "";
 
 						<h1 class="categoriesheader"><?=$_CHOOSECMP?></h1>
 			<table border="0" cellpadding="0" cellspacing="0" width="100%" id="tblComps">
-			<tr><th align="left">Datum</th><th align="left">Namn</th><th align="left">Arrangör</th></tr>
+			<tr><th align="left">Dato</th><th align="left">Navn</th><th align="left">Arrangør</th></tr>
 <?php
 	$comps = Emma::GetCompetitions();
 	foreach ($comps as $comp)
