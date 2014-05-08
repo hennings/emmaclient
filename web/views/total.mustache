@@ -1,0 +1,32 @@
+{{> header }}
+
+<div class="container">
+<h1>Total {{class}}</h1>
+
+<table border='1'>
+  <tr><th>rank</th><th>club</th><th>Tid</th><th>status</th><th>restarts</th><th>team stnr</th></tr>
+
+{{#res}}
+
+ {{#RestartFlag}} 
+ <tr><td colspan="100%">Restart {{RestartFlag}}</td></tr>
+ {{/RestartFlag}}
+
+ <tr>
+  <td>{{Rank}}</td>
+  <td>{{Club}}</td>
+  <td>{{Timestr}}</td>
+  <td>{{Status}}</td>
+  <td>{{Restarts}}</td>
+  <td>{{TeamId}}</td>
+ </tr>
+{{/res}}
+
+</table>
+
+</div>
+
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+
+{{> footer }}
+

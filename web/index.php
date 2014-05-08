@@ -4,7 +4,7 @@ date_default_timezone_set("Europe/Stockholm");
 
 include_once("./templates/emmalang_sv.php");
 	include_once("./templates/classEmma.class.php");
-   $lang = "sv";
+   $lang = "en";
    if (isset($_GET['lang']) && $_GET['lang'] != "")
    {
 	$lang = $_GET['lang'];

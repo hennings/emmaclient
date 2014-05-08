@@ -1,0 +1,23 @@
+{{> header }}
+
+<div class="container">
+
+<h1>All {{class}}</h1>
+<table border='1'>
+<tr><th>navn</th><th>club</th><th>Tid</th><th>status</th><th>control id</th><th>restarts</th><th>team stnr</th><th>relay_leg</th><th>relay_leg_time</th></tr>
+{{#res}}
+<tr>
+  <td>{{Name}}</td>
+  <td>{{Club}}</td>
+  <td>{{Timestr}}</td>
+  <td>{{Status}}</td>
+  <td>{{Restarts}}</td>
+  <td>{{TeamId}}</td>
+  <td>{{Leg}}</td>
+</tr>
+{{/res}}
+</table>
+
+</div>
+
+{{> footer }}

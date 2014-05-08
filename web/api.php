@@ -348,6 +348,162 @@ elseif ($_GET['method'] == 'getclassresults')
 			echo(", \"hash\": \"". $hash."\"}");
 		}
 }
+elseif ($_GET['method'] == 'getrelayclassresults')
+{
+		$class = $_GET['class'];
+		$currentComp = new Emma($_GET['comp']);
+		$relay_results = $currentComp->getAllRelayResultsForClass($class);
+		$results = $currentComp->getAllSplitsForClass($class);
+		$splits = $currentComp->getSplitControlsForClass($class);
+
+		$total = null;
+		$retTotal = false;
+
+		$ret = "";
+		$first = true;
+		$place = 1;
+		$lastTime = -9999;
+		$winnerTime = 0;
+		$resultsAsArray = false;
+		$unformattedTimes = false;
+		if (isset($_GET['resultsAsArray']))
+			$resultsAsArray  = true;
+
+		if (isset($_GET['unformattedTimes']) && $_GET['unformattedTimes'] == "true")
+		{
+			$unformattedTimes = true;
+		}
+
+		$splitJSON = "[";
+		foreach ($splits as $split)
+		{
+			if (!$first)
+				$splitJSON .=",";
+			$splitJSON .= "{ \"code\": ".$split['code'] .", \"name\": \"".$split['name']."\"}";
+			$first = false;
+		}
+		$splitJSON .= "]";
+
+		$first = true;
+		foreach ($results as $res)
+		{
+			if (!$first)
+				$ret .=",";
+			$time = $res['Time'];
+
+			if ($first)
+				$winnerTime =$time;
+
+			$status = $res['Status'];
+			$cp = $place;
+
+			if ($time == "")
+				$status = 9;
+
+			if ($status == 9 || $status == 10)
+			{
+				$cp = "";
+
+			}
+			elseif ($status != 0 || $time < 0)
+			{
+				$cp = "-";
+			}
+			elseif ($time == $lastTime)
+			{
+				$cp = "=";
+			}
+
+			$timeplus = "";
+
+			if ($time > 0 && $status == 0)
+			{
+				$timeplus = $time-$winnerTime;
+			}
+
+			$age = time()-strtotime($res['Changed']);
+			$modified = $age < 120 ? 1:0;
+
+			if (!$unformattedTimes)
+			{
+				$time = formatTime($res['Time'],$res['Status'],$RunnerStatus);
+				$timeplus = "+".formatTime($timeplus,$res['Status'],$RunnerStatus);
+
+			}
+
+			$tot = "";
+			if ($retTotal)
+			{
+				$tot = ", \"totalresult\": ".($res['totaltime']). ", \"totalstatus\": ".$res['totalstatus']. ", \"totalplace\": \"".$res['totalplace']."\", \"totalplus\": ".($res['totalplus']);
+			}
+
+
+			if($resultsAsArray)
+			{
+				$ret .= "[\"$cp\", \"".$res['Name']."\", \"".$res['Club']."\", ".$res['Time'].", ".$status.", ".($time-$winnerTime).",$modified]";
+			}
+			else
+			{
+				$ret .= "{\"place\": \"$cp\", \"name\": \"".$res['Name']."\", \"club\": \"".$res['Club']."\", \"result\": \"".$time."\",\"status\" : ".$status.", \"timeplus\": \"$timeplus\" $tot";
+
+				if (count($splits) > 0)
+				{
+					$ret .= ", \"splits\": {";
+					$firstspl = true;
+					foreach ($splits as $split)
+					{
+						if (!$firstspl)
+								$ret .=",";
+						if (isset($res[$split['code']."_time"]))
+						{
+							$ret .= "\"".$split['code']."\": ".$res[$split['code']."_time"] .",\"".$split['code']."_status\": 0";
+							$spage = time()-strtotime($res[$split['code'].'_changed']);
+							if ($spage < 120)
+								$modified = true;
+						}
+						else
+						{
+							$ret .= "\"".$split['code']."\": \"\",\"".$split['code']."_status\": 1";
+						}
+
+						$firstspl = false;
+					}
+
+					$ret .="}";
+				}
+
+				if (isset($res["start"]))
+				{
+					$ret .= ", \"start\": ".$res["start"];
+				}
+				else
+				{
+					$ret .= ", \"start\": \"\"";
+				}
+
+				if ($modified)
+				{
+					$ret .= ", \"DT_RowClass\": \"new_result\"";
+				}
+
+				$ret .= "}";
+			}
+			$first = false;
+			$place++;
+			$lastTime = $time;
+		}
+
+		$hash = MD5($ret);
+		if (isset($_GET['last_hash']) && $_GET['last_hash'] == $hash)
+		{
+			echo("{ \"status\": \"NOT MODIFIED\"}");
+		}
+		else
+		{
+			echo("{ \"status\": \"OK\", \"className\": \"".$class."\", \"splitcontrols\": $splitJSON, \"results\": [$ret]");
+			echo(", \"hash\": \"". $hash."\"}");
+		}
+}
 else
 {
     $protocol = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');

@@ -359,6 +359,9 @@ public static function UpdateCompetition($id,$name,$org,$date,$public,$timediff)
 			return $ret;
 	}
 
+		function getAllRelayResultsForClass($className) {
+		}
+
 		function getAllSplitsForClass($className)
 
 		{

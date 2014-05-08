@@ -19,7 +19,7 @@ $_NAME="Navn";
 $_CLUB="Klubb";
 $_TIME="Tid";
 $_NOCLASSCHOSEN="Ingen klasse er valgt!";
-$_HELPREDRESULTS="Rødmarkerte resultat er ikke eldre enn 2 minutter";
+$_HELPREDRESULTS="Rødmarkerte resultat er oppdatert siste 2 minutter";
 $_NOTICE="Merk at disse resultater er uoffisielle.'";
 
 $_STATUSDNS = "startet ikke";
