@@ -4,7 +4,7 @@
 <h1>Total {{class}}</h1>
 
 <table border='1'>
-  <tr><th>rank</th><th>club</th><th>Tid</th><th>status</th><th>restarts</th><th>team stnr</th></tr>
+  <tr><th>rank</th><th>club</th><th>Tid</th><th>+</th><th>status</th><th>restarts</th><th>team stnr</th></tr>
 
 {{#res}}
 
@@ -16,9 +16,11 @@
   <td>{{Rank}}</td>
   <td>{{Club}}</td>
   <td>{{Timestr}}</td>
+  <td class="time-behind">{{Behind}}</td>
   <td>{{Status}}</td>
   <td>{{Restarts}}</td>
   <td>{{TeamId}}</td>
+  <td>{{NumFinish}}</td>
  </tr>
 {{/res}}
 
