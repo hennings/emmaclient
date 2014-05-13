@@ -1,3 +1,8 @@
 .time-behind {
     text-align: right;
 }
+
+table td,th {
+    padding-left: 2px;
+    padding-right: 2px;
+}

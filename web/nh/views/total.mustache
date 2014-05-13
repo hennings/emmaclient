@@ -3,8 +3,27 @@
 <div class="container">
 <h1>Total {{class}}</h1>
 
+<a href="/emma/nh/10004/NightHawk+Men/result/1/0">Change over 1</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/2/0">Change over 2</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/3/0">Change over 3</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/4/0">Change over 4</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/5/1">Leg 5 split 1</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/5/2">Leg 5 split 2</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/5/3">Leg 5 split 3</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/5/4">Leg 5 split 4</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/5/0">Change over 5</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/6/0">Change over 6</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/7/0">Change over 7</a>
+<a href="/emma/nh/10004/NightHawk+Men/result/8/0">Finish</a>
+
 <table border='1'>
-  <tr><th>rank</th><th>club</th><th>Tid</th><th>+</th><th>status</th><th>restarts</th><th>team stnr</th></tr>
+  <tr>
+   <th>rank</th>
+   <th>team bib</th>
+   <th>club</th>
+   <th>Tid</th><th class="time-behind">+</th><th>restarts</th>
+   <th># legs</th>
+</tr>
 
 {{#res}}
 
@@ -14,13 +33,14 @@
 
  <tr>
   <td>{{Rank}}</td>
+  <td>{{TeamId}}</td>
   <td>{{Club}}</td>
   <td>{{Timestr}}</td>
-  <td class="time-behind">{{Behind}}</td>
-  <td>{{Status}}</td>
+  <td class="time-behind">{{Behind}}</td> 
   <td>{{Restarts}}</td>
-  <td>{{TeamId}}</td>
   <td>{{NumFinish}}</td>
+  <td>{{Name}}</td>
+  <td>{{LegTime}}</td>
  </tr>
 {{/res}}
 
