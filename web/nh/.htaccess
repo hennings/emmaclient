@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine on
+  RewriteBase /emma/nh/
+  # in this case, our app bootstrap file is index.php
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteRule ^ nh2.php [QSA,L]
+
+</IfModule>
