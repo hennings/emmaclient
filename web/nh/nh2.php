@@ -88,7 +88,7 @@ function result_by_leg ($class, $comp, $leg) {
             
             if ($prevrestart<$row["Restarts"]) {
                 $prevrestart = $row["Restarts"];
-                if ($n>1)$restart_flag= $row["Restarts"]-5;
+                if ($n>1) $restart_flag= $row["Restarts"];
             }
 
 	    if ($row["Status"]>0) { $rank=""; }
