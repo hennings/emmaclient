@@ -4,7 +4,7 @@ class Emma
 {
 	/*public static $db_server = "obasen.orientering.se";*/
 	public static $db_server = "127.0.0.1";
-	public static $db_database = "emma_liveresultater";
+	public static $db_database = "emma_liveresultater_nh";
 	public static $db_user = "livephp";
 	public static $db_pw= "livephp";
 	public static $MYSQL_CHARSET = "latin1";
