@@ -7,3 +7,8 @@ table td,th {
     padding-left: 2px;
     padding-right: 2px;
 }
+
+tr.team-result-changeover {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}

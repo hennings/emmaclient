@@ -1,8 +1,7 @@
 {{> header }}
 
 <div class="container">
-<h2>{{class}}</h2>
-<h1>Situation in {{Leg}}.leg {{Where}}</h1>
+<h1>Leg results {{class}} at leg {{leg}}</h1>
 
 {{> overview }}
 
@@ -10,11 +9,10 @@
   <tr>
    <th>rank</th>
    <th>team bib</th>
-   <th>club</th>
-   <th>total time</th>
-   <th class="time-behind"></th>
    <th>runner</th>
-   <th>leg time</th>
+   <th>time</th>
+   <th class="time-behind"></th>
+   <th>club</th>
 </tr>
 
 {{#res}}
@@ -26,11 +24,10 @@
  <tr>
   <td>{{Rank}}</td>
   <td><a href="{{base}}/{{raceId}}/{{class}}/team/{{TeamId}}">{{TeamId}}</a></td>
-  <td>{{Club}}</td>
+  <td>{{Name}}</td>
   <td>{{Timestr}}</td>
   <td class="time-behind">{{Behind}}</td> 
-  <td>{{Name}}</td>
-  <td>{{LegTime}}</td>
+  <td>{{Club}}</td>
  </tr>
 {{/res}}
 

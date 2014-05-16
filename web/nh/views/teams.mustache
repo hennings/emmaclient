@@ -1,0 +1,29 @@
+{{> header }}
+
+<div class="container">
+<h2>{{class}}</h2>
+<h1>Teams</h1>
+{{> overview }}
+
+<table  class="table table-striped table-bordered table-hover table-responsive table-condensed">
+  <tr>
+   <th>team bib</th>
+   <th>club</th>
+</tr>
+
+{{#res}}
+ <tr>
+  <td><a href="{{base}}/{{raceId}}/{{class}}/team/{{TeamId}}">{{TeamId}}</a></td>
+  <td>{{Club}}</td>
+ </tr>
+{{/res}}
+
+</table>
+
+
+</div>
+
+
+
+{{> footer }}
+

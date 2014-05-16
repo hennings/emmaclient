@@ -22,44 +22,141 @@ $m = new Mustache_Engine(array(
         return htmlspecialchars($value, ENT_COMPAT, 'ISO-8859-1');},
 ));
 
-$splits = array(
-    "NightHawk Men"=>array(5=>array("1121","1111","1141","1136")),
-    "NightHawk Women"=>array(4=>array("1136"))
+$config = array(
+    "NightHawk Men"=>array("legs"=>8),
+    "NightHawk Women"=>array("legs"=>6)
 );
+
+$splits = array(
+    "NightHawk Men"=>array(
+        5=>array(
+            array("code"=>"1121","name"=>"1.2 km"),
+            array("code"=>"1111","name"=>"2.3 km"),
+            array("code"=>"1141","name"=>"3.4 km"),
+            array("code"=>"1136","name"=>"5.2 km"))),
+    "NightHawk Women"=>array(
+        4=>array(array("code"=>"1136", "name"=>"4.2 km")))
+);
+
+
+$base = "/emmanh/nh";
 
 
 $app = new \Slim\Slim(array('debug'=>true));
 
 $app->get('/:raceId/:class/result/:leg/:split', function ($raceId,$class,$leg,$split) {
-    global $m, $splits;
+    global $m, $splits, $base, $config;
     $comp = new Emma($raceId);
     if ($split>0) {
-        $results = result_by_leg_at_split($class, $comp, $leg, $splits[$class][$leg][$split-1]);
+        $results = result_by_leg_at_split($class, $comp, $leg, $splits[$class][$leg][$split-1]["code"]);
+        $where=$splits[$class][$leg][$split-1]["name"];
     } else {
         $results = result_by_leg($class, $comp, $leg);
+        if ($leg==$config[$class]["legs"]) {
+            $where="Finish";
+        } else {
+            $where = "Change-over";
+        }
     }
-    echo $m->render("total", array("res"=>$results, "class"=>$class));	
+    echo $m->render("total", array("res"=>$results, "class"=>$class, "base"=>$base,
+    "raceId"=>$raceId, "Where"=>$where, "Leg"=>$leg));	
 });
 
-$app->get('/:raceId/:class/team/:bibNr', function ($raceId,$class,$leg) {
-    global $m;
+$app->get('/:raceId/:class/legresult/:leg', function ($raceId,$class,$leg) {
+    global $m, $base;
     $comp = new Emma($raceId);
-    $results = result_by_team($class, $comp);
-    echo $m->render("team", array("res"=>$results, "class"=>$class));	
+    $results = result_at_leg($class, $comp, $leg);
+    echo $m->render("legresult", array("res"=>$results, "class"=>$class, 
+    "leg"=>$leg, "base"=>$base, "raceId"=>$raceId));	
+});  
+
+
+
+$app->get('/:raceId/:class/team/:bibNr', function ($raceId,$class,$bib) {
+    global $m, $base;
+    $start = microtime(true);
+    $comp = new Emma($raceId);
+    $results = result_by_team($class, $comp, $bib);
+#    echo "\n\n".print_r($results[0]["finish"])."\n\n";
+
+    echo $m->render("team", array("res"=>$results, "class"=>$class, "teamId"=>$bib,
+    "base"=>$base, "raceId"=>$raceId, "team"=>$results[0]["finish"]["Club"]));	
+
+    $total = microtime(true)-$start;
+    echo "<!-- Time spent: ".$total. "-->\n\n";
+
 });
 
 
 $app->get('/:raceId/:class/listall', function ($raceId,$class) {
-    global $m;
+    global $m, $base;
     $comp = new Emma($raceId);
     $results = list_all_result($class, $comp);
-	echo $m->render("listall", array("class"=>$class,"res"=>$results));
+	echo $m->render("listall", array("class"=>$class,"res"=>$results, "base"=>$base));
+});
+
+
+$app->get('/:raceId/:class/teams', function ($raceId,$class) {
+    global $m, $base;
+    $comp = new Emma($raceId);
+    $results = list_all_teams($class, $comp);
+	echo $m->render("teams", array("class"=>$class,"res"=>$results, "base"=>$base, "raceId"=>$raceId));
+});
+
+$app->get('/:raceId/:class/', function ($raceId,$class) {
+    global $m, $base, $config, $splits;
+    $comp = new Emma($raceId);
+
+    $menu = make_menu($class);
+
+	echo $m->render("class_overview", 
+    array("class"=>$class, "raceId"=>$raceId, "base"=>$base, "menu"=>$menu));
+
 });
 
 
 $app->run();
 
 
+function result_by_team ($class, $comp, $team) {
+    global $splits, $config;
+    $legs = $config[$class]["legs"];
+
+#    $res_after_leg = array();
+#    $res_at_leg = array();
+    $teamres = array();
+    for ($i = 1; $i<=$legs; $i++) {
+        $res_after_leg = result_by_leg($class, $comp, $i) ;
+        $res_at_leg = result_at_leg($class, $comp, $i) ;
+        foreach ($res_after_leg as $ra) {
+            $ra["Leg"] = $i;
+           $teamres[$ra["TeamId"]][$i-1]["finish"]=$ra;
+        }
+        $numberOfRunners = count($res_at_leg);
+        foreach ($res_at_leg as $ra) {
+            $ra["NumberOfRunners"] = $numberOfRunners;
+            $ra["Leg"] = $i;
+            $teamres[$ra["TeamId"]][$i-1]["at_leg"]=$ra;
+        }
+
+        if (array_key_exists($i, $splits[$class])) {
+            $splitNr = 1;
+            foreach ($splits[$class][$i] as $splitCode) {
+                $res_at_split = result_by_leg_at_split($class, $comp, $i, $splitCode["code"]) ;
+                foreach ($res_at_split as $ra) {
+                    $ra["SplitName"] = $splitCode["name"];
+                    $ra["Leg"] = $i;
+                    $ra["SplitNr"] = $splitNr;
+                    $teamres[$ra["TeamId"]][$i-1]["splits"][$splitNr-1]=$ra;
+                }
+                $splitNr++;
+            }
+        }
+
+    }
+//    echo "<br> ".print_r($legres);
+    return $teamres[$team];
+}
 
 function result_by_leg ($class, $comp, $leg) {
 
@@ -104,6 +201,53 @@ function result_by_leg ($class, $comp, $leg) {
 		"Name" => $row["Name"], "LegTime"=>formatTime($row["LegTime"],0)." ".status($row["LegStatus"])
             )
             );
+        }
+        mysql_free_result($result);
+        return $results;
+        
+    }		else {
+        
+        die(mysql_error());
+    }
+    
+
+
+
+}
+
+function result_at_leg ($class, $comp, $leg) {
+
+    $q = "select relay_teamid, Name, relay_leg_time as Time, ru.Club, re.Status from Results re, Runners ru WHERE re.dbid=ru.dbid and re.tavid=".$comp->m_CompId." and ru.tavid=".$comp->m_CompId." and relay_leg=".$leg." and class like '".$class."-_' AND control=1000 ORDER by status, relay_leg_time";
+
+    if ($result = mysql_query($q,$comp->m_Conn)) {
+        $results = array();
+        $rank = 1;
+        $besttime = 0;
+        $prevtime = 0;
+        $n = 0;	
+        
+        while ($row = mysql_fetch_array($result)) {
+            $n++;
+            if ($row["Time"]!=$prevtime) {
+                $rank = $n;
+                $prevtime = $row["Time"];
+            }
+        	$restart_flag=0;
+            $delta = 0;
+            if ($n==1) { $besttime = $row["Time"]; }
+            else { 
+                $delta = $row["Time"] - $besttime; 
+            }
+            
+	    if ($row["Status"]>0) { $rank=""; }
+
+            array_push($results, array(
+                "Club"=>$row["Club"], "Status"=>$row["Status"],
+                "Timestr"=>formatTime($row["Time"], $row["Status"]),
+                "TeamId"=>$row["relay_teamid"], "Rank"=>$rank,
+                "Behind" => ($delta>0) ? "+".formatTimeSimple($delta,0):"",
+                "Name" => $row["Name"] )
+                );
         }
         mysql_free_result($result);
         return $results;
@@ -221,6 +365,57 @@ function list_all_result ($class, $comp) {
         die(mysql_error());
     }
  }
+
+function list_all_teams ($class, $comp) {
+    $q = "SELECT distinct Runners.Club, relay_teamid From Runners,Results where Results.DbID = Runners.DbId AND Results.TavId = ". $comp->m_CompId ." AND Runners.TavId = ".$comp->m_CompId ." AND Runners.Class like '".$class."-_'  ORDER BY relay_teamid";
+    
+    if ($result = mysql_query($q,$comp->m_Conn)) {
+        $results = array();
+        
+        while ($row = mysql_fetch_array($result)) {
+            array_push($results, array(
+                "Club"=>$row["Club"],
+            "TeamId"=>$row["relay_teamid"]
+            )
+            );
+        }
+        
+        mysql_free_result($result);
+        return $results;
+        
+    }		else {
+        
+        die(mysql_error());
+    }
+ }
+
+    function make_menu ($class) {
+        global $config, $splits;
+        $legs = $config[$class]["legs"];
+        
+        $menu = array();
+        for ($i = 1; $i<=$legs; $i++) {
+            if ($i==$legs) {
+                $where="Finish";
+            } else { 
+                $where="Change over"; 
+            }
+            $cur = array("finish"=>0, "Leg"=>$i, "Where"=>$where);
+            if (array_key_exists($i, $splits[$class])) {
+                $splitNr = 1;
+                $legsplits = array();
+                foreach ($splits[$class][$i] as $splitCode) {
+                    array_push($legsplits,array("nr"=>$splitNr, 
+                    "SplitWhere"=>$splitCode["name"]));
+                    $splitNr++;
+                }
+            $cur["splits"]=$legsplits;
+            }
+            $menu[$i-1] = $cur;
+        }
+        return $menu;
+    }
+
 
 function status($status){
 	 global $RunnerStatus;

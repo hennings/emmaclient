@@ -1,0 +1,26 @@
+{{> header }}
+
+<div class="container">
+<h2>{{class}}</h2>
+
+<p>
+ <ul>
+  <li><a href="{{base}}/{{raceId}}/{{class}}/teams">Teams</a></li>
+ </ul>
+</p>
+
+<p>
+<table  class="table table-striped table-bordered table-hover table-responsive table-condensed">
+{{#menu}}
+<tr><td>{{Leg}}</td>
+  <td><a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{finish}}">{{Where}}</a></td>
+  <td>{{#splits}}
+          <a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{nr}}">{{SplitWhere}} {{SplitCode}}</a>
+      {{/splits}}</td>
+{{/menu}}
+</table>
+</p>
+
+
+
+{{> footer }}

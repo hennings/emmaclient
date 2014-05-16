@@ -1,0 +1,43 @@
+{{> header }}
+
+<div class="container">
+<h2>{{class}}</h2>
+<h1>{{teamId}} {{team}}</h1>
+
+{{> overview }}
+
+<table class="table table-bordered table-responsive table-condensed">
+
+<tr><th>Leg</th><th>Runner</th><th>rank</th><th></th><th>Time</th><th>Behind</th><th>Placing in leg</th><th>Leg time</th></tr>
+
+{{#res}}
+ <tr class="team-result-changeover">
+ {{#finish}}
+  <td>{{Leg}}</td><td>{{Name}}</td>
+  <td><a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/0">{{Rank}}</a></td>
+  <td>{{Change}}</td>
+  <td>{{Timestr}}</td><td>{{Behind}}</td>
+ {{/finish}}
+ {{#at_leg}}
+  <td><a href="{{base}}/{{raceId}}/{{class}}/legresult/{{Leg}}">{{Rank}}/{{NumberOfRunners}}</a></td>
+  <td>{{Timestr}}</td>
+ {{/at_leg}}
+ </tr>
+{{#splits}}
+<tr>
+<td></td><td>{{SplitName}}</td>
+  <td><a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{SplitNr}}">{{Rank}}</a></td>
+  <td>{{Change}}</td>
+  <td>{{Timestr}}</td><td>{{Behind}}</td>
+  <td></td><td>{{LegTime}}</td>
+</tr>
+{{/splits}}
+{{/res}}
+
+
+</table>
+
+
+
+{{> footer }}
+
