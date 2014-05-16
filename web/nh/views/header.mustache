@@ -9,3 +9,29 @@
 <link href="/emmanh/nh/local.css" rel="stylesheet">
 </head>
 <body>
+
+<div class="container"><img src="{{base}}/images/nighthawk-750.png"></div>
+
+
+<div class="container">
+ <div class="navbar navbar-default" role="navigation">
+            <ul class="nav navbar-nav">
+{{#config}}
+  {{#menus}}
+    <li>
+<!-- <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <b class="caret">{{class}}</a>-->
+{{class}}
+      <ul>
+        {{#menu}}
+        <li><a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{finish}}">{{Leg}} {{Where}}</a>
+        <ul>{{#splits}}<li>
+          <a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{nr}}">{{SplitWhere}}</a>
+	  </li>{{/splits}}</ul></li>
+        {{/menu}}
+      </ul>
+     </li>
+{{/menus}}
+{{/config}}
+</ul>
+</div>
+</div></div>
