@@ -12,7 +12,7 @@ include_once("../templates/classEmma.class.php");
 $RunnerStatus = Array("1" =>  $_STATUSDNS, "2" => $_STATUSDNF, "11" =>  $_STATUSWO, "12" => $_STATUSMOVEDUP, "9" => $_STATUSNOTSTARTED,"0" => $_STATUSOK, "3" => $_STATUSMP, "4" => $_STATUSDSQ, "5" => $_STATUSOT, "9" => "", "10" => "");
 
 header('content-type: text/html'); # ; charset='.$CHARSET);
-
+header('Cache-Control: max-age=10');
 
 # nh2.php/{race}/{class}/{listtype}/{leg}
 
@@ -24,7 +24,8 @@ $m = new Mustache_Engine(array(
 
 $config = array(
     "NightHawk Men"=>array("legs"=>8),
-    "NightHawk Women"=>array("legs"=>6)
+    "NightHawk Women"=>array("legs"=>6),
+    "classes"=>array("NightHawk Men", "NightHawk Women")
 );
 
 $splits = array(
@@ -44,6 +45,13 @@ $base = "/emmanh/nh";
 
 $app = new \Slim\Slim(array('debug'=>true));
 
+
+$menus = array();
+foreach (array_keys($splits) as $class) {
+    array_push($menus, array("menu"=>make_menu($class),"class"=>$class));
+}
+$config["menus"]=$menus;
+
 $app->get('/:raceId/:class/result/:leg/:split', function ($raceId,$class,$leg,$split) {
     global $m, $splits, $base, $config;
     $comp = new Emma($raceId);
@@ -59,27 +67,30 @@ $app->get('/:raceId/:class/result/:leg/:split', function ($raceId,$class,$leg,$s
         }
     }
     echo $m->render("total", array("res"=>$results, "class"=>$class, "base"=>$base,
+    "config"=>$config,
     "raceId"=>$raceId, "Where"=>$where, "Leg"=>$leg));	
 });
 
 $app->get('/:raceId/:class/legresult/:leg', function ($raceId,$class,$leg) {
-    global $m, $base;
+    global $m, $base, $config;
     $comp = new Emma($raceId);
     $results = result_at_leg($class, $comp, $leg);
     echo $m->render("legresult", array("res"=>$results, "class"=>$class, 
+    "config"=>$config,
     "leg"=>$leg, "base"=>$base, "raceId"=>$raceId));	
 });  
 
 
 
 $app->get('/:raceId/:class/team/:bibNr', function ($raceId,$class,$bib) {
-    global $m, $base;
+    global $m, $base, $config;
     $start = microtime(true);
     $comp = new Emma($raceId);
     $results = result_by_team($class, $comp, $bib);
 #    echo "\n\n".print_r($results[0]["finish"])."\n\n";
 
     echo $m->render("team", array("res"=>$results, "class"=>$class, "teamId"=>$bib,
+    "config"=>$config,
     "base"=>$base, "raceId"=>$raceId, "team"=>$results[0]["finish"]["Club"]));	
 
     $total = microtime(true)-$start;
@@ -89,28 +100,32 @@ $app->get('/:raceId/:class/team/:bibNr', function ($raceId,$class,$bib) {
 
 
 $app->get('/:raceId/:class/listall', function ($raceId,$class) {
-    global $m, $base;
+    global $m, $base, $config;
     $comp = new Emma($raceId);
     $results = list_all_result($class, $comp);
-	echo $m->render("listall", array("class"=>$class,"res"=>$results, "base"=>$base));
+	echo $m->render("listall", array("class"=>$class,"res"=>$results, "base"=>$base,
+        "config"=>$config));
 });
 
 
 $app->get('/:raceId/:class/teams', function ($raceId,$class) {
-    global $m, $base;
+    global $m, $base,  $config;
     $comp = new Emma($raceId);
     $results = list_all_teams($class, $comp);
-	echo $m->render("teams", array("class"=>$class,"res"=>$results, "base"=>$base, "raceId"=>$raceId));
+	echo $m->render("teams", array("class"=>$class,"res"=>$results, "base"=>$base, 
+        "config"=>$config,
+    "raceId"=>$raceId));
 });
 
 $app->get('/:raceId/:class/', function ($raceId,$class) {
-    global $m, $base, $config, $splits;
+    global $m, $base, $config, $splits, $menu;
     $comp = new Emma($raceId);
 
     $menu = make_menu($class);
 
 	echo $m->render("class_overview", 
-    array("class"=>$class, "raceId"=>$raceId, "base"=>$base, "menu"=>$menu));
+    array("class"=>$class, "raceId"=>$raceId, "base"=>$base, 
+        "config"=>$config, "menu"=>$menu));
 
 });
 
