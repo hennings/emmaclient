@@ -2,6 +2,10 @@
     text-align: right;
 }
 
+.section {
+ margin-bottom: 60px;
+}
+
 table td,th {
     padding: 1px;
     padding-left: 2px;

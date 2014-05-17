@@ -1,4 +1,4 @@
-<? include_once("../templates/emmalang_sv.php");
+<?php include_once("../templates/emmalang_sv.php");
 
 	include_once("../templates/classEmma.class.php");
 
@@ -166,23 +166,21 @@ el.style.backgroundColor = "";
 <td>Date</td><td>Name</td><td>Organizer</td><td>Public</td><td></td>
 </tr>
 
-<?
+<?php
 
 	$comps = Emma::GetAllCompetitions();
 
-	//echo(sizeof($comps));
+//echo(sizeof($comps));
 
 	//for ($i = 0; $i < sizeof($comps); $i++)
 
 	foreach ($comps as $comp)
 
 	{
-
 	?>
-
 		<tr id="row<?=$comp["tavid"]?>"><td><?=date("Y-m-d",strtotime($comp['compDate']))?></td><td><?=$comp["compName"]?></td><td><?=$comp["organizer"]?></td><td><?=$comp["public"] == "1" ? "yes" : "false"?></td><td><a href="editComp.php?compid=<?=$comp["tavid"]?>">Edit</a></tr>
 
-	<?
+	<?php
 
 	}
 

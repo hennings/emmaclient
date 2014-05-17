@@ -1,0 +1,70 @@
+{{> display_header }}
+
+<div class="container section">
+
+<h4>{{race}} - multi result</h4>
+
+<form action="/emmanh/display.php/{{raceId}}/multiresult" method="GET">
+
+<ul>
+{{#classes}}
+<li class="checkbox"> <label>
+  <input type="checkbox" name="class[]" value="{{Class}}"> 
+  <span>{{Class}}</span></label>
+</li>
+{{/classes}}
+</ul>
+
+<div class="form-group">
+<label for="speed">Speed</label>
+<input name="speed" id="speed" type="text" value="20" placeholder="Enter scroll speed, ms pr pixel">
+</div>
+
+<div class="form-group">
+<label for="wait">Wait</label>
+<input name="wait" id="wait" type="text" value="2000" placeholder="Enter ms to wait">
+</div>
+
+ <button type="submit" class="btn btn-default">Submit</button>
+
+<button id="select-all" type="button" class="btn">Select all </button>
+<button id="deselect-all" type="button" class="btn">Deselect all</button>
+
+</form>
+
+
+</div>
+
+
+<div class="container section">
+<h4>{{race}} - result</h4>
+
+
+<ul class="list-group">
+{{#classes}}
+<li class="list-group-item"> <a href="/emmanh/display.php/{{raceId}}/results/{{Class}}">{{Class}}</a></li>
+{{/classes}}
+</ul>
+
+</div>
+
+
+
+
+
+
+<script>
+$(document).ready(function() {
+  $( '#select-all' ).click( function () {
+    $( 'input[type="checkbox"]' ).prop('checked', true)
+  })
+  $( '#deselect-all' ).click( function () {
+    $( 'input[type="checkbox"]' ).prop('checked', false)
+  })
+});
+
+</script>
+
+
+
+{{> display_footer }}

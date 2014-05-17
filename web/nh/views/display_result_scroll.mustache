@@ -1,0 +1,31 @@
+
+<style>
+div.container { display: none; }
+body {
+   -webkit-transform: translate3d(0, 0, 0);
+   -moz-transform: translate3d(0, 0, 0);
+   -ms-transform: translate3d(0, 0, 0);
+   transform: translate3d(0, 0, 0);
+}
+</style>
+
+<script>
+
+$( document ).ready(function() {
+  var waitTime = {{wait}};
+  var pixelSpeed = {{speed}};
+    $("div.container").fadeIn(400);
+    $("html, body").animate({scrollTop: 0}, "fast");
+  setTimeout(function() {
+      $("html, body").animate({scrollTop: $(document).height() }, 
+			      $(document).height()*pixelSpeed , "linear",
+  			      function() { 
+				  setTimeout(function() {
+				      $("div.container").fadeOut(400, function() {
+					  location.reload(true)})}, waitTime);
+				 
+			      });
+  }, waitTime);
+});
+</script>
+
