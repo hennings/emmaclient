@@ -42,8 +42,16 @@ $app->get('/:raceId/multiresult', function ($raceId) {
     $comp = new Emma($raceId);
     $classes = $app->request->params("class");
 
+    $allclasses = $comp->Classes();
 
-    $date = gmdate("H:i:s");
+    if (count($classes)==0) {
+      $classes = array();
+      foreach ($allclasses as $cl) {
+	array_push($classes, $cl[0]);
+      }
+    }
+
+    $date = date("H:i:s");
     echo $m->render("display_header", array("raceId"=>$raceId, "now"=>$date));
     if (count($classes)>0) {
         foreach ($classes as $class) {
