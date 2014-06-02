@@ -31,6 +31,7 @@
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.btnOLA = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
+            this.buttonEtiming = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.lblInfo = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -40,10 +41,11 @@
             // 
             // flowLayoutPanel1
             // 
-            this.flowLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.flowLayoutPanel1.Controls.Add(this.btnOLA);
             this.flowLayoutPanel1.Controls.Add(this.button2);
+            this.flowLayoutPanel1.Controls.Add(this.buttonEtiming);
             this.flowLayoutPanel1.Location = new System.Drawing.Point(16, 29);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
             this.flowLayoutPanel1.Size = new System.Drawing.Size(463, 73);
@@ -61,9 +63,9 @@
             this.btnOLA.Text = "OLA";
             this.btnOLA.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.btnOLA.UseVisualStyleBackColor = true;
-            this.btnOLA.MouseLeave += new System.EventHandler(this.btn_MouseLeave);
             this.btnOLA.Click += new System.EventHandler(this.btnOLA_Click);
             this.btnOLA.MouseEnter += new System.EventHandler(this.btnOLA_MouseHover);
+            this.btnOLA.MouseLeave += new System.EventHandler(this.btn_MouseLeave);
             // 
             // button2
             // 
@@ -76,9 +78,26 @@
             this.button2.Text = "XML and OE/OS";
             this.button2.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.MouseLeave += new System.EventHandler(this.btn_MouseLeave);
             this.button2.Click += new System.EventHandler(this.button2_Click);
             this.button2.MouseEnter += new System.EventHandler(this.button2_MouseEnter);
+            this.button2.MouseLeave += new System.EventHandler(this.btn_MouseLeave);
+            // 
+            // buttonEtiming
+            // 
+            this.buttonEtiming.Image = global::LiveResults.Client.Properties.Resources.emit;
+            this.buttonEtiming.ImageAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.buttonEtiming.Location = new System.Drawing.Point(193, 3);
+            this.buttonEtiming.Name = "buttonEtiming";
+            this.buttonEtiming.Size = new System.Drawing.Size(64, 61);
+            this.buttonEtiming.TabIndex = 3;
+            this.buttonEtiming.Text = "eTiming";
+            this.buttonEtiming.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            this.buttonEtiming.UseVisualStyleBackColor = true;
+            this.buttonEtiming.Click += new System.EventHandler(this.button1_Click_2);
+            this.buttonEtiming.Enter += new System.EventHandler(this.button4_MouseEnter);
+            this.buttonEtiming.Leave += new System.EventHandler(this.btn_MouseLeave);
+            this.buttonEtiming.MouseEnter += new System.EventHandler(this.button4_MouseEnter);
+            this.buttonEtiming.MouseLeave += new System.EventHandler(this.btn_MouseLeave);
             // 
             // label1
             // 
@@ -108,9 +127,9 @@
             // 
             // flowLayoutPanel2
             // 
-            this.flowLayoutPanel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.flowLayoutPanel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.flowLayoutPanel2.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
             this.flowLayoutPanel2.Location = new System.Drawing.Point(16, 171);
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
@@ -145,5 +164,6 @@
         private System.Windows.Forms.Label lblInfo;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel2;
+        private System.Windows.Forms.Button buttonEtiming;
     }
 }

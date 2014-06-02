@@ -186,7 +186,7 @@ namespace LiveResults.Client
             {
                 if (!c.IsRunnerAdded(newResult.ID))
                 {
-                    c.AddRunner(new Runner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class));
+                    c.AddRunner(new Runner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class, newResult.Extra1, newResult.Extra2));
                 }
                 else
                     c.UpdateRunnerInfo(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class);

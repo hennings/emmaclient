@@ -39,7 +39,7 @@ namespace LiveResults.Client
             foreach (EmmaMysqlClient client in m_Clients)
             {
                 if (!client.IsRunnerAdded(newResult.ID))
-                    client.AddRunner(new Runner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class));
+                    client.AddRunner(new Runner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class, newResult.Extra1, newResult.Extra2));
                 else
                     client.UpdateRunnerInfo(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class);
 

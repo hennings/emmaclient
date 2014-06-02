@@ -89,7 +89,7 @@ namespace LiveResults.Client.Parsers
                     }
 
 
-                    Runner runner = new Runner(dbid, givenname + " " + familyname, club, className);
+                    Runner runner = new Runner(dbid, givenname + " " + familyname, club, className, null, null);
 
                     int istarttime = -1;
                     if (!string.IsNullOrEmpty(starttime))
