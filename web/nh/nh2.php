@@ -30,6 +30,15 @@ $config = array(
 
 $splits = array(
     "NightHawk Men"=>array(
+        1=>array(
+	     array("code"=>"1111","name"=>"2.3 km")),
+        2=>array(
+	     array("code"=>"1111","name"=>"2.5 km")),
+        3=>array(
+	     array("code"=>"1111","name"=>"2.5 km")),
+        4=>array(
+	     array("code"=>"1111","name"=>"3.4 km")),
+
         5=>array(
             array("code"=>"1121","name"=>"1.2 km"),
             array("code"=>"1111","name"=>"2.3 km"),
@@ -129,8 +138,97 @@ $app->get('/:raceId/:class/', function ($raceId,$class) {
 
 });
 
+$app->get('/:raceId/:class/speakermenu', function ($raceId,$class) {
+    global $m, $base, $config, $splits, $menu;
+    $comp = new Emma($raceId);
+
+    $menu = make_menu($class);
+
+	echo $m->render("speaker_menu", 
+    array("class"=>$class, "raceId"=>$raceId, "base"=>$base, 
+        "config"=>$config, "menu"=>$menu));
+
+});
+
+$app->get('/:raceId/:class/superspeaker', function ($raceId,$class) {
+    global $m, $base, $config, $splits, $menu, $app;
+    $comp = new Emma($raceId);
+
+    list($results, $list_of_points) = calc_superspeaker($class, $comp);
+
+    echo $m->render("speaker_res", 
+    array("class"=>$class, "raceId"=>$raceId, "base"=>$base, 
+    "config"=>$config, "res"=>$results, "points"=>$list_of_points));
+
+
+});
+
 
 $app->run();
+
+
+
+function calc_superspeaker ($class, $comp) 
+{
+    global $m, $base, $config, $splits, $menu, $app;
+
+    $tavid = $comp->m_CompId;
+    $q = "";
+    $legs = $config[$class]["legs"];
+    $list_of_points = array();
+    for ($i = 1; $i<=$legs; $i++) {
+        $from_control = $to_control = 0;
+        $from = $app->request->params("from-".$i);
+        $to = $app->request->params("to-".$i);
+        if ($from!='skip' && $to!='skip') {
+	    $from_control = find_station_code($from);
+	    $to_control = find_station_code($to);
+        }
+
+        if ($from_control>0 && $to_control>0) {
+
+            array_push ($list_of_points, array(
+                "leg"=>$i,
+                "from"=>$from_control,
+                "to"=>$to_control,
+                "from_name" => find_station_name($class, $i, $from_control),
+                "to_name" => find_station_name($class, $i, $to_control)
+            ));
+            
+
+            if (strlen($q)>0) {
+                $q = $q." union all ";
+            }
+            $q=$q." select ru.Name, ru.Club, fromres.relay_leg, fromres.relay_teamid, ifnull(tores.relay_leg_time,0) - ifnull(fromres.relay_leg_time,0) as legtime,  tores.relay_leg_time as totime, fromres.relay_leg_time as fromtime from (select dbid, control, relay_teamid,relay_leg_time from Results where control=".$to_control." and tavid=".$tavid." and  relay_leg=".$i.") as tores, (select dbid, control, relay_teamid,relay_leg_time, relay_leg from Results where control=".$from_control." and tavid=".$tavid." and relay_leg=".$i.") as fromres, Runners ru where tores.dbid=fromres.dbid and fromres.dbid=ru.dbid and ru.tavid=".$tavid." and ru.class like '".$class."-%'";
+        }
+
+#        echo "$i / $legs ($from_control - $to_control)<br/>\n";
+    }
+        $q2 = "SELECT r.relay_teamid as TeamId, Club, sum(legtime) as Legtime FROM ( ".$q." ) as r GROUP by relay_teamid, club ORDER by sum(legtime)  ";
+
+        $allRes = array();
+        if ($result0 = mysql_query($q." order by relay_teamid, relay_leg",$comp->m_Conn)) {
+            while ($row = mysql_fetch_array($result0)) {
+                array_push($allRes, $row);
+            }
+            mysql_free_result($result0);
+        }
+
+
+    if ($result = mysql_query($q2,$comp->m_Conn)) {
+
+        $data = array();
+        while ($row = mysql_fetch_array($result)) {
+            array_push ($data, $row);
+        }
+        mysql_free_result($result);
+
+        $results = decorate_resultlist($data, "LegTime");
+        
+    }
+    return array($results, $list_of_points);
+
+}
 
 
 function result_by_team ($class, $comp, $team) {
@@ -175,7 +273,8 @@ function result_by_team ($class, $comp, $team) {
 
 function result_by_leg ($class, $comp, $leg) {
 
-    $q = "SELECT * FROM (select relay_teamid, Runners.Club, max(Results.Status) as Status, sum(relay_restarts) as Restarts, sum(relay_leg_time) as Time, count(Runners.DbId) as NumFinish From Runners,Results where Results.DbID = Runners.DbId AND Results.TavId = ". $comp->m_CompId ." AND Runners.TavId = ".$comp->m_CompId ." AND Runners.Class like '".$class."-_' AND Control=1000 AND relay_leg<=".$leg." GROUP BY relay_teamid,Club ORDER BY status,NumFinish desc,restarts, time) as total, (select relay_teamid, Name, relay_leg_time as LegTime, re.Status as LegStatus from Results re, Runners ru WHERE re.dbid=ru.dbid and re.tavid=".$comp->m_CompId." and ru.tavid=".$comp->m_CompId." and relay_leg=".$leg." and class like '".$class."-_' AND control=1000)  as leg_runner WHERE total.relay_teamid=leg_runner.relay_teamid ORDER by status, NumFinish desc, restarts, time";
+     $q = "SELECT * FROM (select relay_teamid, Runners.Club, max(Results.Status) as Status, sum(relay_restarts) as Restarts, sum(relay_leg_time) as Time, count(Runners.DbId) as NumFinish From Runners,Results where Results.DbID = Runners.DbId AND Results.TavId = ". $comp->m_CompId ." AND Runners.TavId = ".$comp->m_CompId ." AND Runners.Class like '".$class."-_' AND Control=1000 AND relay_leg<=".$leg." GROUP BY relay_teamid,Club ORDER BY status,NumFinish desc,restarts, time) as total, (select relay_teamid, Name, relay_leg_time as LegTime, re.Status as LegStatus from Results re, Runners ru WHERE re.dbid=ru.dbid and re.tavid=".$comp->m_CompId." and ru.tavid=".$comp->m_CompId." and relay_leg=".$leg." and class like '".$class."-_' AND control=1000)  as leg_runner WHERE total.relay_teamid=leg_runner.relay_teamid ORDER by status, NumFinish desc, restarts, time";
+	     
 
     if ($result = mysql_query($q,$comp->m_Conn)) {
         $results = array();
@@ -280,7 +379,7 @@ function result_at_leg ($class, $comp, $leg) {
 function result_by_leg_at_split ($class, $comp, $leg, $split) {
 
 # sum(relay_leg_time) leg<$leg + Time at current to control
-
+  if ($leg>1) {
     $q = "
 SELECT total.relay_teamid, Club, Status, Restarts, total.Time+leg_runner.SplitTime as Time, 
        NumFinish, 
@@ -301,6 +400,20 @@ FROM
 WHERE total.relay_teamid=leg_runner.relay_teamid 
 ORDER by status, NumFinish desc, restarts, time
 ";
+} else {
+    $q = "
+select relay_teamid, Runners.Club, Status , Status as LegStatus, Name,
+  relay_restarts as Restarts, relay_leg_time as Time, 0 as NumFinish, relay_leg_time as SplitTime
+  FROM Runners,Results where Results.DbID = Runners.DbId 
+    and Results.TavId = ". $comp->m_CompId ."
+    and Runners.TavId = ".$comp->m_CompId ." AND Runners.Class like '".$class."-_' 
+    and Control=".$split." AND relay_leg=1 
+  ORDER BY status,NumFinish desc,restarts, time
+";
+
+}
+	echo $q;
+
     if ($result = mysql_query($q,$comp->m_Conn)) {
         $results = array();
         $rank = 1;
@@ -337,7 +450,9 @@ ORDER by status, NumFinish desc, restarts, time
                 "RestartFlag"=>$restart_flag, "NumFinish"=>$row["NumFinish"],
                 "Behind" => ($delta>0) ? "+".formatTimeSimple($delta,0):"",
 		"LegStatus"=>$row["Status"],
-		"Name" => $row["Name"], "LegTime"=>formatTime($row["SplitTime"],0)." ".status($row["LegStatus"])
+		"Name" => $row["Name"], 
+		"LegTime"=>formatTime($row["SplitTime"],0).
+		" ".status($row["LegStatus"])
             )
             );
         }
@@ -421,6 +536,7 @@ function list_all_teams ($class, $comp) {
                 $legsplits = array();
                 foreach ($splits[$class][$i] as $splitCode) {
                     array_push($legsplits,array("nr"=>$splitNr, 
+		    "code"=>$splitCode["code"],
                     "SplitWhere"=>$splitCode["name"]));
                     $splitNr++;
                 }
@@ -467,6 +583,55 @@ function formatTimeSimple($time,$status){
         return gmdate("i:s",$sec);
     } 
     return gmdate("H:i:s",$sec);
+}
+
+function find_station_code($from) {
+	  $from_control=-1;
+            if ($from=='start') $from_control = 100;
+            if ($from=='finish') $from_control = 1000;
+            if ($from!='start' && $from!='finish' && $from>0) { 
+	       $from_control = $from;
+            }
+	    return $from_control;
+}
+
+function find_station_name($class, $leg, $control) {
+    global $splits;
+    if ($control == 1000) return "Change-over";
+    if ($control == 100) return "Start";
+    foreach ($splits[$class][$leg] as $p) {
+        if ($p["code"] == $control) {
+            return $p["name"];
+        }
+    }
+    return "n/a";
+}
+
+
+function decorate_resultlist($data, $name) {
+    $n=0; $rank = 0;
+    $prevtime = $besttime = $delta = 0 ;
+    $results = array();
+    foreach ($data as $row) {
+        $n++;
+        if ($n==1) { 
+            $besttime = $row["Legtime"]; 
+        } else {
+            $delta = $row["Legtime"] - $besttime; 
+        }
+
+        if ($row["Legtime"]!=$prevtime) {
+            $rank = $n;
+            $prevtime = $row["Legtime"];
+        }
+        array_push ($results, array(
+            "Club"=>$row["Club"],
+            "Timestr"=>formatTime($row["Legtime"],0), "Rank"=>$rank,
+            "Behind" =>($delta>0) ? "+".formatTimeSimple($delta,0):"",
+            "TeamId"=>$row["TeamId"]
+        ));
+    }
+    return $results;
 }
 
 
