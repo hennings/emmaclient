@@ -209,7 +209,8 @@ function calc_superspeaker ($class, $comp)
         $allRes = array();
         if ($result0 = mysql_query($q." order by relay_teamid, relay_leg",$comp->m_Conn)) {
             while ($row = mysql_fetch_array($result0)) {
-                array_push($allRes, $row);
+                $allRes[$row["relay_teamid"]][$row["relay_leg"]]=array(
+                    "Name"=>$row["Name"], "Legtime"=>$row["legtime"]);
             }
             mysql_free_result($result0);
         }
@@ -219,6 +220,18 @@ function calc_superspeaker ($class, $comp)
 
         $data = array();
         while ($row = mysql_fetch_array($result)) {
+            $teamId =$row["TeamId"];
+            for ($i=1; $i<=8;$i++) {
+                if (array_key_exists($i, $allRes[$teamId])) {
+                    if (!isset($row["LegRes"])) {
+                        $row["LegRes"] = array();
+                    }
+                    array_push($row["LegRes"], array(
+                        "Leg"=>$i, "Name"=>$allRes[$teamId][$i]["Name"],
+                        "Legtime"=>
+                        formatTimeSimple($allRes[$teamId][$i]["Legtime"],0)));
+                }
+            }
             array_push ($data, $row);
         }
         mysql_free_result($result);
@@ -628,7 +641,8 @@ function decorate_resultlist($data, $name) {
             "Club"=>$row["Club"],
             "Timestr"=>formatTime($row["Legtime"],0), "Rank"=>$rank,
             "Behind" =>($delta>0) ? "+".formatTimeSimple($delta,0):"",
-            "TeamId"=>$row["TeamId"]
+            "TeamId"=>$row["TeamId"],
+            "LegRes"=>$row["LegRes"]
         ));
     }
     return $results;
