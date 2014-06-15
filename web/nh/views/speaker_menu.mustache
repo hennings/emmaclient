@@ -1,0 +1,45 @@
+{{> header }}
+
+<div class="container">
+<h2>Speaker menu {{class}}</h2>
+
+<p>
+ <ul>
+  <li><a href="{{base}}/{{raceId}}/{{class}}/teams">Teams</a></li>
+ </ul>
+</p>
+
+<p>
+<form action="{{base}}/{{raceId}}/{{class}}/superspeaker" method="GET">
+<table class="table table-bordered table-responsive table-condensed">
+{{#menu}}
+<tr><td>{{Leg}}</td>
+  <td><select name="from-{{Leg}}">
+    <option value="skip"></option>
+    <option value="start">From start</option>
+    {{#splits}}
+          <option value="{{code}}">{{SplitWhere}} {{SplitCode}}</option>
+      {{/splits}}
+    <option value="finish">{{Where}}</option>
+    </select>
+  </td>
+  <td><select name="to-{{Leg}}">
+    <option value="skip"></option>
+    {{#splits}}
+          <option value="{{code}}">{{SplitWhere}} {{SplitCode}}</option>
+      {{/splits}}
+    <option value="finish">{{Where}}</option>
+    </select>
+  </td>
+</tr>
+{{/menu}}
+</table>
+
+<input type="submit" value="Watch" />
+
+</form>
+</p>
+
+
+
+{{> footer }}
