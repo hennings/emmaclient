@@ -204,7 +204,7 @@ function calc_superspeaker ($class, $comp)
 
 #        echo "$i / $legs ($from_control - $to_control)<br/>\n";
     }
-        $q2 = "SELECT r.relay_teamid as TeamId, Club, sum(legtime) as Legtime FROM ( ".$q." ) as r GROUP by relay_teamid, club ORDER by sum(legtime)  ";
+        $q2 = "SELECT r.relay_teamid as TeamId, Club, sum(legtime) as Legtime FROM ( ".$q." ) as r GROUP by relay_teamid, club ORDER by count(legtime) DESC, sum(legtime)  ";
 
         $allRes = array();
         if ($result0 = mysql_query($q." order by relay_teamid, relay_leg",$comp->m_Conn)) {
