@@ -425,7 +425,7 @@ select relay_teamid, Runners.Club, Status , Status as LegStatus, Name,
 ";
 
 }
-	echo $q;
+  //	echo $q;
 
     if ($result = mysql_query($q,$comp->m_Conn)) {
         $results = array();
