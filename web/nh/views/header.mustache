@@ -24,9 +24,12 @@
       <ul>
         {{#menu}}
         <li><a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{finish}}">{{Leg}} {{Where}}</a>
-        <ul>{{#splits}}<li>
-          <a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{nr}}">{{SplitWhere}}</a>
-	  </li>{{/splits}}</ul></li>
+        <ul>{{#splits}}
+	  {{^hidden}}
+	  <li><a href="{{base}}/{{raceId}}/{{class}}/result/{{Leg}}/{{nr}}">{{SplitWhere}}</a></li>
+	  {{/hidden}}
+             {{/splits}}
+	</ul></li>
         {{/menu}}
       </ul>
      </li>

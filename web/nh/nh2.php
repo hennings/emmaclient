@@ -40,7 +40,7 @@ $splits = array(
 	     array("code"=>"1111","name"=>"3.4 km")),
 
         5=>array(
-            array("code"=>"1121","name"=>"1.2 km"),
+		 array("code"=>"1121","name"=>"1.2 km", "hidden"=>true),
             array("code"=>"1111","name"=>"2.3 km"),
             array("code"=>"1141","name"=>"3.4 km"),
             array("code"=>"1136","name"=>"5.2 km"))),
@@ -548,7 +548,9 @@ function list_all_teams ($class, $comp) {
                 $splitNr = 1;
                 $legsplits = array();
                 foreach ($splits[$class][$i] as $splitCode) {
-                    array_push($legsplits,array("nr"=>$splitNr, 
+		  $hidden = false;
+		  if (array_key_exists("hidden", $splitCode)) { $hidden=true; }
+		  array_push($legsplits,array("nr"=>$splitNr, "hidden"=>$hidden,
 		    "code"=>$splitCode["code"],
                     "SplitWhere"=>$splitCode["name"]));
                     $splitNr++;

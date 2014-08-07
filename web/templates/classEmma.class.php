@@ -1,5 +1,5 @@
 <?php
-$CHARSET = 'iso-8859-1';
+$CHARSET = 'UTF-8';
 class Emma
 {
 	/*public static $db_server = "obasen.orientering.se";*/
@@ -7,7 +7,7 @@ class Emma
 	public static $db_database = "emma_liveresultater_nh";
 	public static $db_user = "livephp";
 	public static $db_pw= "livephp";
-	public static $MYSQL_CHARSET = "latin1";
+	public static $MYSQL_CHARSET = "utf8";
 	var $m_CompId;
    var $m_CompName;
    var $m_CompDate;
