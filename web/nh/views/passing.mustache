@@ -1,0 +1,25 @@
+{{> header }}
+
+
+<div class="container">
+{{> overview }}
+
+<h1>{{class}} - passing {{code}}</h1>
+<table border='1'>
+<tr><th>name</th><th>club</th><th>time</th><th>team no</th><th>leg</th><th>start no</th><th>when</th></tr>
+{{#res}}
+<tr>
+  <td>{{Name}}</td>
+  <td>{{Club}}</td>
+  <td>{{Timestr}}</td>
+  <td>{{TeamId}}</td>
+  <td>{{Leg}}</td>
+  <td>{{Stnr}}</td>
+  <td>{{Timestamp}}</td>
+</tr>
+{{/res}}
+</table>
+
+</div>
+
+{{> footer }}
