@@ -11,7 +11,7 @@ include_once("../templates/classEmma.class.php");
 
 $RunnerStatus = Array("1" =>  $_STATUSDNS, "2" => $_STATUSDNF, "11" =>  $_STATUSWO, "12" => $_STATUSMOVEDUP, "9" => $_STATUSNOTSTARTED,"0" => $_STATUSOK, "3" => $_STATUSMP, "4" => $_STATUSDSQ, "5" => $_STATUSOT, "9" => "", "10" => "");
 
-header('content-type: text/html'); # ; charset='.$CHARSET);
+header('content-type: text/html; charset='.$CHARSET);
 header('Cache-Control: max-age=10');
 
 # nh2.php/{race}/{class}/{listtype}/{leg}
@@ -113,6 +113,14 @@ $app->get('/:raceId/:class/listall', function ($raceId,$class) {
     $comp = new Emma($raceId);
     $results = list_all_result($class, $comp);
 	echo $m->render("listall", array("class"=>$class,"res"=>$results, "base"=>$base,
+        "config"=>$config));
+});
+
+$app->get('/:raceId/:class/passing/:code', function ($raceId,$class, $code) {
+    global $m, $base, $config;
+    $comp = new Emma($raceId);
+    $results = list_passing($class, $comp, $code);
+    echo $m->render("passing", array("class"=>$class,"res"=>$results, "base"=>$base, "code"=>$code,
         "config"=>$config));
 });
 
@@ -509,6 +517,38 @@ function list_all_result ($class, $comp) {
     }
  }
 
+
+function list_passing ($class, $comp, $code) {
+  $q = "SELECT  Runners.Name, Runners.Club, Results.Time, Results.Status, Results.Changed, Results.DbID, Results.Control, relay_restarts, relay_teamid, relay_leg, relay_leg_time, relay_timestamp From Runners,Results where Results.DbID = Runners.DbId AND Results.TavId = ". $comp->m_CompId ." AND Runners.TavId = ".$comp->m_CompId ." AND Runners.Class like '".$class."-_' AND Control=".(0+$code)." ORDER BY relay_timestamp desc, relay_teamid, relay_leg";
+    
+    if ($result = mysql_query($q,$comp->m_Conn)) {
+        $results = array();
+        
+        while ($row = mysql_fetch_array($result)) {
+            array_push($results, array("Name"=>$row["Name"],
+	        "Club"=>$row["Club"], "Status"=>$row["Status"],
+            "Timestr"=>formatTime($row["relay_leg_time"], $row["Status"]),
+				       "Timestamp"=>formatExcel($row["relay_timestamp"]),
+				       "Ts"=>($row["relay_timestamp"]),
+            "Restarts"=>$row["relay_restarts"],
+            "TeamId"=>$row["relay_teamid"],
+				       "Leg"=>$row["relay_leg"],
+				       "Stnr"=>$row["relay_leg"]*100+$row["relay_teamid"]
+            )
+            );
+        }
+        
+        mysql_free_result($result);
+        return $results;
+        
+    }		else {
+        
+        die(mysql_error());
+    }
+ }
+
+
+
 function list_all_teams ($class, $comp) {
     $q = "SELECT distinct Runners.Club, relay_teamid From Runners,Results where Results.DbID = Runners.DbId AND Results.TavId = ". $comp->m_CompId ." AND Runners.TavId = ".$comp->m_CompId ." AND Runners.Class like '".$class."-_'  ORDER BY relay_teamid";
     
@@ -569,6 +609,10 @@ function status($status){
       return $RunnerStatus[$status]; //$status;
     }
     return "";
+}
+function formatExcel($time) {
+  $ts = mktime(0,0, (($time-floor($time))*60*60*24),1,$time-1.0,1900); 
+  return gmdate("d/m/Y H:i:s",$ts);
 }
 
 function formatTime($time,$status){
