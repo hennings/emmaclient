@@ -98,7 +98,7 @@ namespace LiveResults.Client
             Application.DoEvents();
             foreach (EmmaMysqlClient.EmmaServer server in servers)
             {
-                EmmaMysqlClient client = new EmmaMysqlClient(server.host, server.port, server.user, server.pw, server.db, Convert.ToInt32(txtCompID.Text));
+                EmmaMysqlClient client = new EmmaMysqlClient(server.host, 3306, server.user, server.pw, server.db, Convert.ToInt32(txtCompID.Text));
 
                 client.OnLogMessage += new LogMessageDelegate(client_OnLogMessage);
                 client.Start();
@@ -139,17 +139,14 @@ namespace LiveResults.Client
 
                 if (newResult.Time != -2)
                 {
-                    client.SetRunnerResult(newResult.ID, newResult.Time, newResult.Status, 
-                        newResult.RelayRestarts, newResult.RelayTeamId, newResult.RelayLeg, newResult.RelayLegTime, newResult.Timestamp);
-                        
+                          client.SetRunnerResult(newResult.ID, newResult.Time, newResult.Status);
                 }
 
                 if (newResult.SplitTimes != null)
                 {
                     foreach (ResultStruct str in newResult.SplitTimes)
                     {
-                        client.SetRunnerSplit(newResult.ID, str.ControlCode, str.Time, newResult.RelayRestarts, 
-                            newResult.RelayTeamId, newResult.RelayLeg, str.RelayLegTime, str.Timestamp);
+                         client.SetRunnerSplit(newResult.ID, str.ControlCode, str.Time);
                     }
                 }
             }

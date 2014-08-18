@@ -82,11 +82,6 @@ namespace LiveResults.Client
         private string m_name;
         private string m_club;
         private string m_Class;
-        private int m_relayRestarts;
-        private int m_relayTeamId;
-        private int m_relayLeg;
-        private int m_relayLegTime;
-        private double m_relayTimestamp;
         private int m_Start;
         private int m_Time;
         private int m_Status;
@@ -96,7 +91,7 @@ namespace LiveResults.Client
         public bool StartTimeUpdated;
 
         private Dictionary<int,SplitTime> m_SplitTimes;
-        public Runner(int dbID, string name, string club, string Class, int relayRestarts = 0, int relayTeamId = 0, int relayLeg = 0, int relayLegTime=0, double relayTimestamp=0)
+        public Runner(int dbID, string name, string club, string Class)
         {
             RunnerUpdated = true;
             ResultUpdated = false;
@@ -107,12 +102,8 @@ namespace LiveResults.Client
             m_name = name;
             m_club = club;
             m_Class = Class;
-            m_relayRestarts = relayRestarts;
-            m_relayTeamId = relayTeamId;
-            m_relayLeg = relayLeg;
-            m_relayLegTime = relayLegTime;
-            m_relayTimestamp = relayTimestamp;
         }
+
 
         public int ID
         {
@@ -230,7 +221,7 @@ namespace LiveResults.Client
             
         }
 
-        public void SetSplitTime(int controlCode, int time, int relayLegTime=0, double timestamp = 0)
+        public void SetSplitTime(int controlCode, int time)
         {
             if (HasSplitChanged(controlCode, time))
             {
@@ -238,8 +229,6 @@ namespace LiveResults.Client
                 {
                     SplitTime t = (SplitTime)m_SplitTimes[controlCode];
                     t.Time = time;
-                    t.RelayTimestamp = timestamp;
-                    t.RelayLegTime = relayLegTime;
                     t.Updated = true;
                 }
                 else
@@ -247,8 +236,6 @@ namespace LiveResults.Client
                     SplitTime t = new SplitTime();
                     t.Control = controlCode;
                     t.Time = time;
-                    t.RelayLegTime = relayLegTime;
-                    t.RelayTimestamp = timestamp;
                     t.Updated = true;
                     m_SplitTimes.Add(controlCode, t);
                 }
@@ -271,51 +258,6 @@ namespace LiveResults.Client
             }
         }
 
-        public int RelayRestarts
-        {
-            get
-            {
-                return m_relayRestarts;
-            }
-            set
-            {
-                m_relayRestarts = value;
-                RunnerUpdated = true;
-            }
-        }
-
-        public int RelayLeg
-        {
-            get { return m_relayLeg; }
-            set { m_relayLeg = value; RunnerUpdated = true; }
-        }
-
-        public double RelayTimestamp
-        {
-            get { return m_relayTimestamp; }
-            set { m_relayTimestamp = value; RunnerUpdated = true; }
-        }
-
-        public int RelayLegTime
-        {
-            get { return m_relayLegTime; }
-            set { m_relayLegTime = value; RunnerUpdated = true; }
-        }
-
-        public int RelayTeamId
-        {
-            get
-            {
-                return m_relayTeamId;
-            }
-            set
-            {
-                m_relayTeamId = value;
-                RunnerUpdated = true;
-            }
-        }
-
-
         public string Name
         {
             get
@@ -334,8 +276,6 @@ namespace LiveResults.Client
     {
         public int Control;
         public int Time;
-        public int RelayLegTime;
-        public double RelayTimestamp;
         public bool Updated;
     }
 }

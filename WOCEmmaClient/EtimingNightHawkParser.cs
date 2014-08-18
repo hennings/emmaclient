@@ -7,13 +7,13 @@ using System.Globalization;
 
 namespace LiveResults.Client
 {
-    public class EtimingNightHawkParser : IExternalSystemResultParser
+    public class EtimingNightHawkParser  //: IExternalSystemResultParser
     {
-//        private IDbConnection m_Connection;
+        //        private IDbConnection m_Connection;
         private OleDbConnection m_Connection;
         private int m_EventRaceId;
 
-        public event ResultDelegate OnResult;
+        public event NHResultDelegate OnResult;
         public event LogMessageDelegate OnLogMessage;
 
         private bool m_Continue = false;
@@ -23,7 +23,7 @@ namespace LiveResults.Client
             m_EventRaceId = eventRaceId;
         }
 
-        private void FireOnResult(Result newResult)
+        private void FireOnResult(NHResult newResult)
         {
             if (OnResult != null)
             {
@@ -62,9 +62,9 @@ namespace LiveResults.Client
                 {
                     if (m_Connection.State != System.Data.ConnectionState.Open)
                     {
-                  
-                            m_Connection.Open();
-                        }
+
+                        m_Connection.Open();
+                    }
 
                     string paramOper = "?";
 
@@ -86,20 +86,20 @@ namespace LiveResults.Client
 
                     if (isRelay)
                     {
-                        baseCommand = "SELECT n.timechanged, n.id, n.ename as lastname,r.teamno,n.races as restart,n.name as firstname, "+
-                            " n.lisens,n.startno,c.class as classname, n.status,n.times, n.place, n.info as shootresult, "+
-                            " n.rank as relayteamno, n.seed, n.starttime, n.totaltime, n.pnr, n.intime, "+
+                        baseCommand = "SELECT n.timechanged, n.id, n.ename as lastname,r.teamno,n.races as restart,n.name as firstname, " +
+                            " n.lisens,n.startno,c.class as classname, n.status,n.times, n.place, n.info as shootresult, " +
+                            " n.rank as relayteamno, n.seed, n.starttime, n.totaltime, n.pnr, n.intime, " +
                             "(intime-starttime) as mtime,  t.name as teamname , " +
                             "(select sum(intime-starttime) from name n2 where n.rank=n2.rank and n2.seed<n.seed) as relaytime " +
                             "FROM Name n, Class c, Team t, Relay r  " +
                             "WHERE n.class=c.code and t.code=r.lgteam AND (n.timechanged>@date or n.intime>@date or @date=0)  AND n.rank=r.lgstartno   " +
                             "ORDER BY intime ASC, startno";
 
-                        splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.races as restart,r.teamno, "+
-                            " n.name as firstname , n.lisens,n.startno,c.class as classname,n.status,m.strtid, "+
-                            " n.rank as relayteamno, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, "+
+                        splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.races as restart,r.teamno, " +
+                            " n.name as firstname , n.lisens,n.startno,c.class as classname,n.status,m.strtid, " +
+                            " n.rank as relayteamno, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, " +
                             " (m.mintime-starttime) as mtime, mtime as mtime2, t.name as teamname, " +
-                            " (select sum(intime-starttime) from name n2 where n.rank=n2.rank and n2.seed<n.seed) as relaytime "+
+                            " (select sum(intime-starttime) from name n2 where n.rank=n2.rank and n2.seed<n.seed) as relaytime " +
                             "FROM Name n, Class c, Team t, Mellom m, Relay r " +
                             "WHERE n.id=m.id and n.class=c.code and t.code=r.lgteam AND mchanged>? AND iplace<999 AND n.rank=r.lgstartno   " +
                             "ORDER BY mintime ASC, startno";
@@ -119,7 +119,7 @@ namespace LiveResults.Client
                     }
 
 
-                    cmd.CommandText = baseCommand; 
+                    cmd.CommandText = baseCommand;
                     IDbDataParameter param = cmd.CreateParameter();
                     param.ParameterName = "date";
                     param.Value = 0.0;
@@ -135,14 +135,14 @@ namespace LiveResults.Client
                     FireLogMsg("BaseCommandSql\n" + baseCommand);
                     FireLogMsg("SplitCommandSql\n" + splitbaseCommand);
 
-                       
-/*                    IDbDataParameter splitparam = cmdSplits.CreateParameter();
-                    splitparam.ParameterName = "date";
-                        splitparam.Value = DateTime.Now;
-  */
+
+                    /*                    IDbDataParameter splitparam = cmdSplits.CreateParameter();
+                                        splitparam.ParameterName = "date";
+                                            splitparam.Value = DateTime.Now;
+                      */
 
                     cmd.Parameters.Add(param);
-                    
+
                     cmdSplits.Parameters.Add(paramSplit);
 
 
@@ -157,17 +157,17 @@ namespace LiveResults.Client
                         {
                             /*Kontrollera om nya klasser*/
                             /*Kontrollera om nya resultat*/
-                                (cmd.Parameters["date"] as IDbDataParameter).Value = lastDateTime;
-                               // (cmdSplits.Parameters["date"] as IDbDataParameter).Value = lastSplitDateTime;
+                            (cmd.Parameters["date"] as IDbDataParameter).Value = lastDateTime;
+                            // (cmdSplits.Parameters["date"] as IDbDataParameter).Value = lastSplitDateTime;
 
-                                FireLogMsg("Latest date = " + lastDateTime);
+                            FireLogMsg("Latest date = " + lastDateTime);
                             string command = cmd.CommandText;
                             cmd.Prepare();
                             reader = cmd.ExecuteReader();
                             while (reader.Read())
                             {
                                 Double modDate = 0.0, time = 0.0;
-                                int  runnerID = 0, iStartTime = 0, iTime = 0;
+                                int runnerID = 0, iStartTime = 0, iTime = 0;
                                 string famName = "", fName = "", club = "", classN = "", status = "";
                                 int e1restarts = 0, e2relayteamid = 0, legNo = 0;
                                 Double relayTeamTime = 0.0;
@@ -226,21 +226,21 @@ namespace LiveResults.Client
                                         {
                                             relayTimestamp = Convert.ToDouble(reader["intime"]);
                                         }
-                                        
-                                        
+
+
                                         if (reader["relaytime"] != DBNull.Value)
                                         {
                                             relayTeamTime = Convert.ToDouble(reader["relaytime"].ToString());
-//                                            FireLogMsg("Relay time: " + relayTeamTime);
+                                            //                                            FireLogMsg("Relay time: " + relayTeamTime);
                                         }
                                         relayLegTime = Convert.ToInt32(((time % 1) * 60 * 60 * 24 + 0.001) * 100);
                                         time = relayTeamTime + time;
-                                        
+
                                         /* 
                                         * How to handle leg 4...?
                                         */
                                     }
-                                    iStartTime = Convert.ToInt32( ((startTime % 1) * 60 * 60 * 24 + 0.001) * 100); // iStartTime = seconds*100
+                                    iStartTime = Convert.ToInt32(((startTime % 1) * 60 * 60 * 24 + 0.001) * 100); // iStartTime = seconds*100
 
                                 }
                                 catch (Exception ee)
@@ -248,8 +248,8 @@ namespace LiveResults.Client
                                     FireLogMsg(ee.Message);
                                 }
 
-                                iTime = Convert.ToInt32 (((time % 1) * 60 * 60 * 24 + 0.1) * 100); // iTime = seconds*100
-                                
+                                iTime = Convert.ToInt32(((time % 1) * 60 * 60 * 24 + 0.1) * 100); // iTime = seconds*100
+
 
                                 /*
                                     time is seconds * 100
@@ -295,24 +295,24 @@ namespace LiveResults.Client
                                         break;
                                 }
                                 if (rstatus != 999)
-                                    FireLogMsg("Results in ordinary; " + fName+" " + famName+", " + e2relayteamid+", leg " + legNo);
-                                    FireOnResult(
-                                        new Result()
-                                        {
-                                            ID = runnerID,
-                                            RunnerName = fName + " " + famName,
-                                            RunnerClub = club,
-                                            Class = classN,
-                                            StartTime = iStartTime,
-                                            Time = iTime,
-                                            Status = rstatus,
-                                            RelayRestarts = e1restarts,
-                                            RelayTeamId = e2relayteamid,
-                                            RelayLeg = legNo,
-                                            RelayLegTime = relayLegTime,
-                                            Timestamp = relayTimestamp
+                                    FireLogMsg("Results in ordinary; " + fName + " " + famName + ", " + e2relayteamid + ", leg " + legNo);
+                                FireOnResult(
+                                    new NHResult()
+                                    {
+                                        ID = runnerID,
+                                        RunnerName = fName + " " + famName,
+                                        RunnerClub = club,
+                                        Class = classN,
+                                        StartTime = iStartTime,
+                                        Time = iTime,
+                                        Status = rstatus,
+                                        RelayRestarts = e1restarts,
+                                        RelayTeamId = e2relayteamid,
+                                        RelayLeg = legNo,
+                                        RelayLegTime = relayLegTime,
+                                        Timestamp = relayTimestamp
 
-                                        });
+                                    });
                             }
                             reader.Close();
 
@@ -326,8 +326,8 @@ namespace LiveResults.Client
                                 int relayLegTime = 0;
                                 try
                                 {
-                                    
-                             // last modified time
+
+                                    // last modified time
 
                                     double modDate = Convert.ToDouble(reader[0]);
                                     lastSplitDateTime = (modDate > lastSplitDateTime ? modDate : lastSplitDateTime);
@@ -345,7 +345,7 @@ namespace LiveResults.Client
                                     classN = (reader["classname"] as string);
 
 
-                                    double startTime = 0.0, mInTime = 0.0 , mTime = 0.0, mTime2 = 0.0, mTime3 = 0.0;
+                                    double startTime = 0.0, mInTime = 0.0, mTime = 0.0, mTime2 = 0.0, mTime3 = 0.0;
                                     int iStartTime = 0, iMTime = 0;
 
                                     if (reader["starttime"] != null && reader["starttime"] != DBNull.Value)
@@ -353,7 +353,7 @@ namespace LiveResults.Client
                                         startTime = Convert.ToDouble(reader["starttime"]);
                                     }
 
-                                    iStartTime = Convert.ToInt32( ((startTime % 1) * 60 * 60 * 24 + 0.1) * 100); // iStartTime = seconds*100
+                                    iStartTime = Convert.ToInt32(((startTime % 1) * 60 * 60 * 24 + 0.1) * 100); // iStartTime = seconds*100
 
                                     if (reader["mintime"] != null && reader["mintime"] != DBNull.Value)
                                     {
@@ -365,7 +365,7 @@ namespace LiveResults.Client
                                         mTime2 = Convert.ToDouble(reader["mtime2"]);
                                         mTime3 = mTime;
                                         iMTime = Convert.ToInt32(((mTime % 1) * 60 * 60 * 24 + 0.1) * 100); //  seconds*100
-                                        if (isRelay) relayLegTime = Convert.ToInt32(((mTime2 % 1) * 60 * 60 * 24 + 0.1) * 100); 
+                                        if (isRelay) relayLegTime = Convert.ToInt32(((mTime2 % 1) * 60 * 60 * 24 + 0.1) * 100);
                                     }
 
                                     if (isRelay && reader["relaytime"] != DBNull.Value)
@@ -386,8 +386,8 @@ namespace LiveResults.Client
                                     }
 
 
-                                    List<ResultStruct> times = new List<ResultStruct>();
-                                    ResultStruct t = new ResultStruct();
+                                    List<NHResultStruct> times = new List<NHResultStruct>();
+                                    NHResultStruct t = new NHResultStruct();
                                     t.ControlCode = 1 * 1000 + code;  // 1 =) passingcount
                                     t.ControlNo = 0;
                                     t.Time = iMTime;
@@ -395,8 +395,8 @@ namespace LiveResults.Client
                                     if (isRelay) t.RelayLegTime = relayLegTime;
                                     times.Add(t);
 
-                                    
-                               
+
+
                                     if (isRelay)
                                     {
                                         classN = classN + "-" + Convert.ToString(reader["seed"]);
@@ -404,11 +404,11 @@ namespace LiveResults.Client
                                         legNo = Convert.ToInt16(reader["seed"]);
 
                                         e1restarts = db2i(reader["restart"]);
-                                       
-                                       if (reader["relayteamno"] != null && reader["relayteamno"] != DBNull.Value)
-                                       {
-                                           e2relayteamid = Convert.ToInt16(reader["relayteamno"]);
-                                       }
+
+                                        if (reader["relayteamno"] != null && reader["relayteamno"] != DBNull.Value)
+                                        {
+                                            e2relayteamid = Convert.ToInt16(reader["relayteamno"]);
+                                        }
 
 
                                         FireLogMsg("relayteam " + reader["relayteamno"]);
@@ -420,14 +420,14 @@ namespace LiveResults.Client
                                         }
                                     }
 
-                                    FireLogMsg("Runner " + fName + " " + famName + " used " + relayLegTime + ", arrived " + mInTime + " at leg " + legNo );
+                                    FireLogMsg("Runner " + fName + " " + famName + " used " + relayLegTime + ", arrived " + mInTime + " at leg " + legNo);
 
                                     if (legNo == 0)
                                     {
                                         FireLogMsg("Problems");
                                     }
 
-                                    FireOnResult(new Result()
+                                    FireOnResult(new NHResult()
                                     {
                                         ID = runnerID,
                                         RunnerName = fName + " " + famName,
@@ -440,7 +440,7 @@ namespace LiveResults.Client
                                         RelayRestarts = e1restarts,
                                         RelayTeamId = e2relayteamid,
                                         RelayLeg = legNo,
-//                                        RelayLegTime = relayLegTime,
+                                        //                                        RelayLegTime = relayLegTime,
                                         Timestamp = mInTime
                                     });
 
@@ -476,7 +476,7 @@ namespace LiveResults.Client
                 }
                 catch (Exception ee)
                 {
-                    FireLogMsg("Etiming Parser: " +ee.Message);
+                    FireLogMsg("Etiming Parser: " + ee.Message);
                 }
                 finally
                 {
@@ -543,4 +543,15 @@ namespace LiveResults.Client
             return startTime;
         }
     }
+
+    public struct NHResultStruct
+    {
+        public int ControlNo;
+        public int ControlCode;
+        public int Time;
+        public int Place;
+        public int RelayLegTime;
+        public double Timestamp;
+    }
+
 }

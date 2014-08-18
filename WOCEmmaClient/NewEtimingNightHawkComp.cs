@@ -98,7 +98,7 @@ namespace LiveResults.Client
             Application.DoEvents();
             foreach (EmmaMysqlClient.EmmaServer server in servers)
             {
-                EmmaMysqlNightHawkClient client = new EmmaMysqlNightHawkClient(server.host, server.port, server.user, server.pw, server.db, Convert.ToInt32(txtCompID.Text));
+                EmmaMysqlNightHawkClient client = new EmmaMysqlNightHawkClient(server.host, 3306, server.user, server.pw, server.db, Convert.ToInt32(txtCompID.Text));
 
                 client.OnLogMessage += new LogMessageDelegate(client_OnLogMessage);
                 client.Start();
@@ -117,18 +117,18 @@ namespace LiveResults.Client
                 logit(msg);
             };
 
-            pars.OnResult += new ResultDelegate(m_Parser_OnResult);
+            pars.OnResult += new NHResultDelegate(m_Parser_OnResult);
             logit("ready to run... starting EtimingParser");
             pars.Start();
           
         }
 
-        void m_Parser_OnResult(Result newResult)
+        void m_Parser_OnResult(NHResult newResult)
         {
             foreach (EmmaMysqlNightHawkClient client in m_Clients)
             {
                 if (!client.IsRunnerAdded(newResult.ID))
-                    client.AddRunner(new Runner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class));
+                    client.AddRunner(new NHRunner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class));
                 else
                     client.UpdateRunnerInfo(newResult.ID, newResult.RunnerName, newResult.RunnerClub, 
                         newResult.Class); //, newResult.RelayRestarts, newResult.RelayTeamId, newResult.RelayLeg, newResult.RelayLegTime, newResult.Timestamp);
@@ -146,7 +146,7 @@ namespace LiveResults.Client
 
                 if (newResult.SplitTimes != null)
                 {
-                    foreach (ResultStruct str in newResult.SplitTimes)
+                    foreach (NHResultStruct str in newResult.SplitTimes)
                     {
                         client.SetRunnerSplit(newResult.ID, str.ControlCode, str.Time, newResult.RelayRestarts, 
                             newResult.RelayTeamId, newResult.RelayLeg, str.RelayLegTime, str.Timestamp);

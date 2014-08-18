@@ -82,11 +82,11 @@ namespace LiveResults.Client
         private string m_ConnStr;
         private int m_CompID;
         private Hashtable m_Runners;
-        private List<Runner> m_RunnersToUpdate;
+        private List<NHRunner> m_RunnersToUpdate;
         public EmmaMysqlNightHawkClient(string server, int port, string user, string pass, string database, int CompetitionID)
         {
             m_Runners = new Hashtable();
-            m_RunnersToUpdate = new List<Runner>();
+            m_RunnersToUpdate = new List<NHRunner>();
 
             m_ConnStr = "Database=" + database + ";Data Source="+server+";User Id="+user+";Password="+pass+";charset=utf8;Port="+port;
             m_Connection = new MySqlConnection(m_ConnStr);
@@ -95,7 +95,7 @@ namespace LiveResults.Client
 
         private void resetUpdated()
         {
-            foreach (Runner r in m_Runners.Values)
+            foreach (NHRunner r in m_Runners.Values)
             {
                 r.RunnerUpdated = false;
                 r.ResultUpdated = false;
@@ -141,7 +141,7 @@ namespace LiveResults.Client
                     }
                     if (!IsRunnerAdded(dbid))
                     {
-                        Runner r = new Runner(dbid, reader["name"] as string, reader["club"] as string, reader["class"] as string,
+                        NHRunner r = new NHRunner(dbid, reader["name"] as string, reader["club"] as string, reader["class"] as string,
                             db2i(reader["relay_restarts"]), db2i(reader["relay_teamid"]), db2i(reader["relay_leg"]),
                             db2i(reader["relay_leg_time"]));
                         AddRunner(r);
@@ -203,7 +203,7 @@ namespace LiveResults.Client
         {
             if (m_Runners.ContainsKey(id))
             {
-                Runner cur = m_Runners[id] as Runner;
+                NHRunner cur = m_Runners[id] as NHRunner;
                 bool isUpdated = false;
 
                 /*
@@ -246,7 +246,7 @@ namespace LiveResults.Client
         /// Adds a Runner to this competition
         /// </summary>
         /// <param name="r"></param>
-        public void AddRunner(Runner r)
+        public void AddRunner(NHRunner r)
         {
             if (!m_Runners.ContainsKey(r.ID))
             {
@@ -294,7 +294,7 @@ namespace LiveResults.Client
             if (!IsRunnerAdded(runnerID))
                 throw new ApplicationException("Runner is not added! {" + runnerID + "} [SetRunnerResult]");
 
-            Runner r = (Runner)m_Runners[runnerID];
+            NHRunner r = (NHRunner)m_Runners[runnerID];
 
             if (r.HasResultChanged(time, status))
             {
@@ -317,7 +317,7 @@ namespace LiveResults.Client
         {
             if (!IsRunnerAdded(runnerID))
                 throw new ApplicationException("Runner is not added! {" + runnerID + "} [SetRunnerResult]");
-            Runner r = (Runner)m_Runners[runnerID];
+            NHRunner r = (NHRunner)m_Runners[runnerID];
 
             if (r.HasSplitChanged(controlcode, time))
             {
@@ -335,7 +335,7 @@ namespace LiveResults.Client
         {
             if (!IsRunnerAdded(runnerID))
                 throw new ApplicationException("Runner is not added! {" + runnerID + "} [SetRunnerStartTime]");
-            Runner r = (Runner)m_Runners[runnerID];
+            NHRunner r = (NHRunner)m_Runners[runnerID];
 
             if (r.HasStartTimeChanged(starttime))
             {
@@ -349,7 +349,7 @@ namespace LiveResults.Client
 
         }
 
-        public void MergeRunners(Runner[] runners)
+        public void MergeRunners(NHRunner[] runners)
         {
             if (runners == null)
                 return;
@@ -359,7 +359,7 @@ namespace LiveResults.Client
             {
                 if (!IsRunnerAdded(r.ID))
                 {
-                    AddRunner(new Runner(r.ID, r.Name, r.Club, r.Class, r.RelayRestarts, r.RelayTeamId, r.RelayLeg, r.RelayLegTime));
+                    AddRunner(new NHRunner(r.ID, r.Name, r.Club, r.Class, r.RelayRestarts, r.RelayTeamId, r.RelayLeg, r.RelayLegTime));
                 }
                 if (r.StartTime >= 0)
                     SetRunnerStartTime(r.ID, r.StartTime);
@@ -400,7 +400,7 @@ namespace LiveResults.Client
                         {
                             using (MySqlCommand cmd = m_Connection.CreateCommand())
                             {
-                                Runner r = m_RunnersToUpdate[0];
+                                NHRunner r = m_RunnersToUpdate[0];
                                 if (r.RunnerUpdated)
                                 {
                                     cmd.Parameters.Clear();
@@ -473,7 +473,7 @@ namespace LiveResults.Client
                                 }
                                 if (r.HasUpdatedSplitTimes())
                                 {
-                                    List<SplitTime> splitTimes = r.GetUpdatedSplitTimes();
+                                    List<NHSplitTime> splitTimes = r.GetUpdatedSplitTimes();
 
                                     cmd.Parameters.Clear();
                                     cmd.Parameters.AddWithValue("?compid", m_CompID);
@@ -486,7 +486,7 @@ namespace LiveResults.Client
                                     cmd.Parameters.AddWithValue("?extra1", r.RelayRestarts);
                                     cmd.Parameters.AddWithValue("?extra2", r.RelayTeamId);
                                     cmd.Parameters.AddWithValue("?relayleg", r.RelayLeg);
-                                    foreach (SplitTime t in splitTimes)
+                                    foreach (NHSplitTime t in splitTimes)
                                     {
                                         FireLogMsg("About to update split " + t.Control + ", teamId " + r.RelayTeamId+", at  "+ r.RelayLeg+", " + r.RelayTeamId);
                                         cmd.Parameters["?control"].Value = t.Control;

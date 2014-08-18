@@ -21,7 +21,6 @@ namespace LiveResults.Client
             public string user;
             public string pw;
             public string db;
-            public int port;
         }
         public static EmmaServer[] GetServersFromConfig()
         {
@@ -39,7 +38,6 @@ namespace LiveResults.Client
                 s.user = parts[1];
                 s.pw = parts[2];
                 s.db = parts[3];
-                s.port = Convert.ToInt16(parts[4]);
 
                 servers.Add(s);
                 sNum++;
@@ -90,7 +88,7 @@ namespace LiveResults.Client
             m_Runners = new Hashtable();
             m_RunnersToUpdate = new List<Runner>();
 
-            m_ConnStr = "Database=" + database + ";Data Source="+server+";User Id="+user+";Password="+pass+";charset=utf8;Port="+port;
+            m_ConnStr = "Database=" + database + ";Data Source="+server+";User Id="+user+";Password="+pass+";charset=utf8";
             m_Connection = new MySqlConnection(m_ConnStr);
             m_CompID = CompetitionID;
         }
@@ -127,31 +125,22 @@ namespace LiveResults.Client
                 SetCodePage(m_Connection);
 
                 MySqlCommand cmd = m_Connection.CreateCommand();
-                cmd.CommandText = "select Runners.dbid,control,time,name,club,class,status,relay_timestamp,relay_restarts,relay_teamid,relay_leg,relay_leg_time"+
-                    " from Runners, Results "+
-                    " where Results.dbid = Runners.dbid and Results.tavid = " + m_CompID + " and Runners.tavid = " + m_CompID + 
-                    " order by Runners.dbid, control ";
+                cmd.CommandText = "select Runners.dbid,control,time,name,club,class,status from Runners, Results where Results.dbid = Runners.dbid and Results.tavid = " + m_CompID + " and Runners.tavid = " + m_CompID;
                 MySqlDataReader reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
                     int dbid = (int)reader["dbid"];
                     int control = (int)reader["control"];
                     int time = (int)reader["time"];
-                    if (dbid == 410)
-                    {
-                        FireLogMsg("410!");
-                    }
                     if (!IsRunnerAdded(dbid))
                     {
-                        Runner r = new Runner(dbid, reader["name"] as string, reader["club"] as string, reader["class"] as string,
-                            db2i(reader["relay_restarts"]), db2i(reader["relay_teamid"]), db2i(reader["relay_leg"]),
-                            db2i(reader["relay_leg_time"]));
+                        Runner r = new Runner(dbid, reader["name"] as string, reader["club"] as string, reader["class"] as string);
                         AddRunner(r);
                         numRunners++;
                     }
                     if (control == 1000)
                     {
-                        SetRunnerResult(dbid, time, (int)reader["status"], db2i(reader["relay_timestamp"]), db2i(reader["relay_legtime"]));
+                        SetRunnerResult(dbid, time, (int)reader["status"]);
                         numResults++;
                     }
                     else if (control == 100)
@@ -162,7 +151,7 @@ namespace LiveResults.Client
                     else
                     {
                         numResults++;
-                        SetRunnerSplit(dbid, control, time, db2i(reader["relay_leg_time"]), db2i(reader["relay_timestamp"]));
+                        SetRunnerSplit(dbid, control, time);
                     }
                     
                 }
@@ -185,37 +174,17 @@ namespace LiveResults.Client
             }
             
             m_Continue = true;
-            FireLogMsg("End of buffering");
             mainTh = new System.Threading.Thread(new System.Threading.ThreadStart(run));
             mainTh.Name = "Main MYSQL Thread [" + m_Connection.DataSource + "]";
             mainTh.Start();
         }
 
-        private int db2i(object p)
-        {
-            if (p != null)
-            {
-                return Convert.ToInt16(p as string);
-            }
-            return 0;
-        }
-
-
-        public void UpdateRunnerInfo(int id, string name, string club, string Class, int relayRestarts = -1, int relayTeamId = -1, int relayLeg = -1, int relayLegTime = -1, double timestamp = 0.0)
+        public void UpdateRunnerInfo(int id, string name, string club, string Class)
         {
             if (m_Runners.ContainsKey(id))
             {
                 Runner cur = m_Runners[id] as Runner;
                 bool isUpdated = false;
-
-                /*
-                cur.RelayTimestamp = timestamp;
-                cur.RelayLeg = relayLeg;
-                cur.RelayTeamId = relayTeamId;
-                cur.RelayLegTime = relayLegTime;
-                cur.RelayRestarts = relayRestarts;
-
-                */
                 if (cur.Name != name)
                 {
                     cur.Name = name;
@@ -286,12 +255,7 @@ namespace LiveResults.Client
         /// <param name="control"></param>
         /// <param name="time"></param>
         /// <param name="status"></param>
-        /// 
-         //client.SetRunnerResult(newResult.ID, newResult.Time, newResult.Status, 
-         //               newResult.RelayRestarts, newResult.RelayTeamId, newResult.RelayLeg, newResult.RelayLegTime, newResult.Timestamp);
-                        
-        public void SetRunnerResult(int runnerID, int time, int status, 
-            int relay_restarts=0, int relay_team_id=0, int relay_leg=0, int relay_legtime=0, double timestamp=0.0)
+        public void SetRunnerResult(int runnerID, int time, int status)
         {
             if (!IsRunnerAdded(runnerID))
                 throw new ApplicationException("Runner is not added! {" + runnerID + "} [SetRunnerResult]");
@@ -300,11 +264,6 @@ namespace LiveResults.Client
 
             if (r.HasResultChanged(time, status))
             {
-                r.RelayTimestamp = timestamp;
-                r.RelayLegTime = relay_legtime;
-                r.RelayRestarts = relay_restarts;
-                r.RelayTeamId = relay_team_id;
-                r.RelayLeg = relay_leg;
                 r.SetResult(time, status);
                 m_RunnersToUpdate.Add(r);
                 if (!m_CurrentlyBuffering)
@@ -314,8 +273,7 @@ namespace LiveResults.Client
             }
         }
 
-        public void SetRunnerSplit(int runnerID, int controlcode, int time, 
-                        int relay_restarts=0, int relay_team_id=0, int relay_leg=0, int relay_legtime=0, double timestamp=0.0)
+        public void SetRunnerSplit(int runnerID, int controlcode, int time)
         {
             if (!IsRunnerAdded(runnerID))
                 throw new ApplicationException("Runner is not added! {" + runnerID + "} [SetRunnerResult]");
@@ -323,7 +281,7 @@ namespace LiveResults.Client
 
             if (r.HasSplitChanged(controlcode, time))
             {
-                r.SetSplitTime(controlcode, time, relay_legtime, timestamp);
+                r.SetSplitTime(controlcode, time);
                 m_RunnersToUpdate.Add(r);
                 if (!m_CurrentlyBuffering)
                 {
@@ -356,29 +314,26 @@ namespace LiveResults.Client
             if (runners == null)
                 return;
 
-            FireLogMsg("Merge runners");
             foreach (var r in runners)
             {
                 if (!IsRunnerAdded(r.ID))
                 {
-                    AddRunner(new Runner(r.ID, r.Name, r.Club, r.Class, r.RelayRestarts, r.RelayTeamId, r.RelayLeg, r.RelayLegTime));
+                    AddRunner(new Runner(r.ID, r.Name, r.Club, r.Class));
                 }
                 if (r.StartTime >= 0)
                     SetRunnerStartTime(r.ID, r.StartTime);
 
-
-                SetRunnerResult(r.ID, r.Time, r.Status, r.RelayRestarts, r.RelayTeamId, r.RelayLeg, r.RelayLegTime, r.RelayTimestamp);
+                SetRunnerResult(r.ID, r.Time, r.Status);
 
                 var spl = r.SplitTimes;
                 if (spl != null)
                 {
                     foreach (var s in spl)
                     {
-                        SetRunnerSplit(r.ID, s.Control, s.Time, r.RelayRestarts, r.RelayTeamId, r.RelayLeg, s.RelayLegTime, s.RelayTimestamp);
+                        SetRunnerSplit(r.ID, s.Control, s.Time);
                     }
                 }
             }
-            FireLogMsg("End of merge runners");
         }
 
 
@@ -410,8 +365,9 @@ namespace LiveResults.Client
                                     cmd.Parameters.AddWithValue("?name", r.Name);
                                     cmd.Parameters.AddWithValue("?club", r.Club);
                                     cmd.Parameters.AddWithValue("?class", r.Class);
+
                                     cmd.Parameters.AddWithValue("?id", r.ID);
-                                    cmd.CommandText = "REPLACE INTO Runners VALUES (?compid,?name,?club,?class,0,?id)";
+                                    cmd.CommandText = "REPLACE INTO Runners (tavid, name, club, class, brick, dbid) VALUES (?compid,?name,?club,?class,0,?id)";
 
                                     try
                                     {
@@ -430,30 +386,16 @@ namespace LiveResults.Client
                                 }
                                 if (r.ResultUpdated)
                                 {
-                                    if (r.ID == 410)
-                                    {
-                                        FireLogMsg("410 update result");
-                                    }
                                     cmd.Parameters.Clear();
                                     cmd.Parameters.AddWithValue("?compid", m_CompID);
                                     cmd.Parameters.AddWithValue("?id", r.ID);
                                     cmd.Parameters.AddWithValue("?time", r.Time);
                                     cmd.Parameters.AddWithValue("?status", r.Status);
-                                    cmd.Parameters.AddWithValue("?restarts", r.RelayRestarts);
-                                    cmd.Parameters.AddWithValue("?relayteamid", r.RelayTeamId);
-                                    cmd.Parameters.AddWithValue("?relayleg", r.RelayLeg);
-                                    cmd.Parameters.AddWithValue("?relaylegtime", r.RelayLegTime);
-                                    cmd.Parameters.AddWithValue("?relaytimestamp", r.RelayTimestamp);
-                                    cmd.CommandText = "REPLACE INTO Results (tavid, dbid,control,time,status,changed,relay_restarts, relay_teamid,relay_leg, relay_leg_time, relay_timestamp) VALUES(?compid,?id,1000,?time,?status,Now(),?restarts,?relayteamid,?relayleg,?relaylegtime,?relaytimestamp)";
+                                    cmd.CommandText = "REPLACE INTO Results (tavid,dbid, control, time, status, changed) VALUES(?compid,?id,1000,?time,?status,Now())";
                                     cmd.ExecuteNonQuery();
                                     cmd.Parameters.Clear();
 
-                                    if (r.RelayLegTime == 0)
-                                    {
-                                        FireLogMsg("Problems");
-                                    }
-
-                                    FireLogMsg("Runner " + r.Name + "s result updated in DB at finish " + r.RelayLegTime + ", leg " + r.RelayLeg+", " + r.RelayTeamId);
+                                    FireLogMsg("Runner " + r.Name + "s result updated in DB");
                                     r.ResultUpdated = false;
                                 }
                                 if (r.StartTimeUpdated)
@@ -463,11 +405,8 @@ namespace LiveResults.Client
                                     cmd.Parameters.AddWithValue("?id", r.ID);
                                     cmd.Parameters.AddWithValue("?starttime", r.StartTime);
                                     cmd.Parameters.AddWithValue("?status", r.Status);
-                                    cmd.Parameters.AddWithValue("?extra1", r.RelayRestarts);
-                                    cmd.Parameters.AddWithValue("?extra2", r.RelayTeamId);
-                                    cmd.Parameters.AddWithValue("?relayleg", r.RelayLeg);
                                     //cmd.CommandText = "REPLACE INTO Results VALUES(" + m_CompID + "," + r.ID + ",0," + r.StartTime + "," + r.Status + ",Now())";
-                                    cmd.CommandText = "REPLACE INTO Results (tavid, dbid,control,time,status,changed,relay_restarts, relay_teamid,relay_leg) VALUES(?compid,?id,100,?starttime,?status,Now(),?extra1,?extra2,?relayleg)";
+                                    cmd.CommandText = "REPLACE INTO Results (tavid,dbid, control, time, status, changed) VALUES(?compid,?id,100,?starttime,?status,Now())";
                                     cmd.ExecuteNonQuery();
                                     cmd.Parameters.Clear();
                                     FireLogMsg("Runner " + r.Name + "s starttime updated in DB");
@@ -482,23 +421,11 @@ namespace LiveResults.Client
                                     cmd.Parameters.AddWithValue("?id", r.ID);
                                     cmd.Parameters.AddWithValue("?control", -1);
                                     cmd.Parameters.AddWithValue("?time", -1);
-                                    cmd.Parameters.AddWithValue("?relaylegtime", -1);
-                                    cmd.Parameters.AddWithValue("?relaytimestamp", 0.0);
-
-                                    cmd.Parameters.AddWithValue("?extra1", r.RelayRestarts);
-                                    cmd.Parameters.AddWithValue("?extra2", r.RelayTeamId);
-                                    cmd.Parameters.AddWithValue("?relayleg", r.RelayLeg);
                                     foreach (SplitTime t in splitTimes)
                                     {
-                                        FireLogMsg("About to update split " + t.Control + ", teamId " + r.RelayTeamId+", at  "+ r.RelayLeg+", " + r.RelayTeamId);
                                         cmd.Parameters["?control"].Value = t.Control;
                                         cmd.Parameters["?time"].Value = t.Time;
-                                        cmd.Parameters["?relaylegtime"].Value = t.RelayLegTime;
-                                        cmd.Parameters["?relaytimestamp"].Value = t.RelayTimestamp;
-                                        cmd.CommandText = "REPLACE INTO Results (tavid, dbid,control,time,status,changed,relay_restarts,"+
-                                               " relay_teamid,relay_leg, relay_leg_time, relay_timestamp)  "+
-                                               "VALUES(" + m_CompID + "," + r.ID + "," + t.Control + "," + t.Time + 
-                                               ",0,Now(),?extra1,?extra2,?relayleg,?relaylegtime,?relaytimestamp)";
+                                        cmd.CommandText = "REPLACE INTO Results (tavid,dbid, control, time, status, changed) VALUES(" + m_CompID + "," + r.ID + "," + t.Control + "," + t.Time + ",0,Now())";
                                         cmd.ExecuteNonQuery();
                                         t.Updated = false;
                                         FireLogMsg("Runner " + r.Name + " splittime{" + t.Control + "} updated in DB");
