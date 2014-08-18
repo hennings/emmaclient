@@ -82,8 +82,11 @@ namespace LiveResults.Client
         private string m_name;
         private string m_club;
         private string m_Class;
-        private string m_extra1;
-        private string m_extra2;
+        private int m_relayRestarts;
+        private int m_relayTeamId;
+        private int m_relayLeg;
+        private int m_relayLegTime;
+        private double m_relayTimestamp;
         private int m_Start;
         private int m_Time;
         private int m_Status;
@@ -93,7 +96,7 @@ namespace LiveResults.Client
         public bool StartTimeUpdated;
 
         private Dictionary<int,SplitTime> m_SplitTimes;
-        public Runner(int dbID, string name, string club, string Class, string Extra1, string Extra2)
+        public Runner(int dbID, string name, string club, string Class, int relayRestarts = 0, int relayTeamId = 0, int relayLeg = 0, int relayLegTime=0, double relayTimestamp=0)
         {
             RunnerUpdated = true;
             ResultUpdated = false;
@@ -104,10 +107,12 @@ namespace LiveResults.Client
             m_name = name;
             m_club = club;
             m_Class = Class;
-            m_extra1 = Extra1;
-            m_extra2 = Extra2;
+            m_relayRestarts = relayRestarts;
+            m_relayTeamId = relayTeamId;
+            m_relayLeg = relayLeg;
+            m_relayLegTime = relayLegTime;
+            m_relayTimestamp = relayTimestamp;
         }
-
 
         public int ID
         {
@@ -225,7 +230,7 @@ namespace LiveResults.Client
             
         }
 
-        public void SetSplitTime(int controlCode, int time)
+        public void SetSplitTime(int controlCode, int time, int relayLegTime=0, double timestamp = 0)
         {
             if (HasSplitChanged(controlCode, time))
             {
@@ -233,6 +238,8 @@ namespace LiveResults.Client
                 {
                     SplitTime t = (SplitTime)m_SplitTimes[controlCode];
                     t.Time = time;
+                    t.RelayTimestamp = timestamp;
+                    t.RelayLegTime = relayLegTime;
                     t.Updated = true;
                 }
                 else
@@ -240,6 +247,8 @@ namespace LiveResults.Client
                     SplitTime t = new SplitTime();
                     t.Control = controlCode;
                     t.Time = time;
+                    t.RelayLegTime = relayLegTime;
+                    t.RelayTimestamp = timestamp;
                     t.Updated = true;
                     m_SplitTimes.Add(controlCode, t);
                 }
@@ -262,31 +271,50 @@ namespace LiveResults.Client
             }
         }
 
-        public string Extra1
+        public int RelayRestarts
         {
             get
             {
-                return m_extra1;
+                return m_relayRestarts;
             }
             set
             {
-                m_extra1 = value;
+                m_relayRestarts = value;
                 RunnerUpdated = true;
             }
         }
 
-        public string Extra2
+        public int RelayLeg
+        {
+            get { return m_relayLeg; }
+            set { m_relayLeg = value; RunnerUpdated = true; }
+        }
+
+        public double RelayTimestamp
+        {
+            get { return m_relayTimestamp; }
+            set { m_relayTimestamp = value; RunnerUpdated = true; }
+        }
+
+        public int RelayLegTime
+        {
+            get { return m_relayLegTime; }
+            set { m_relayLegTime = value; RunnerUpdated = true; }
+        }
+
+        public int RelayTeamId
         {
             get
             {
-                return m_extra2;
+                return m_relayTeamId;
             }
             set
             {
-                m_extra2 = value;
+                m_relayTeamId = value;
                 RunnerUpdated = true;
             }
         }
+
 
         public string Name
         {
@@ -306,6 +334,8 @@ namespace LiveResults.Client
     {
         public int Control;
         public int Time;
+        public int RelayLegTime;
+        public double RelayTimestamp;
         public bool Updated;
     }
 }

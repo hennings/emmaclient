@@ -106,5 +106,11 @@ namespace LiveResults.Client
             monForm.CompetitionID = Convert.ToInt32(1);
             monForm.ShowDialog(this);*/
         }
+
+        private void button1_Click_3(object sender, EventArgs e)
+        {
+            NewEtimingNightHawkComp cmp = new NewEtimingNightHawkComp();
+            cmp.ShowDialog(this);
+        }
     }
 }

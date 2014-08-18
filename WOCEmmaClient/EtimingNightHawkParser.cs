@@ -7,7 +7,7 @@ using System.Globalization;
 
 namespace LiveResults.Client
 {
-    public class EtimingParser : IExternalSystemResultParser
+    public class EtimingNightHawkParser : IExternalSystemResultParser
     {
 //        private IDbConnection m_Connection;
         private OleDbConnection m_Connection;
@@ -17,7 +17,7 @@ namespace LiveResults.Client
         public event LogMessageDelegate OnLogMessage;
 
         private bool m_Continue = false;
-        public EtimingParser(OleDbConnection conn, int eventRaceId)
+        public EtimingNightHawkParser(OleDbConnection conn, int eventRaceId)
         {
             m_Connection = conn;
             m_EventRaceId = eventRaceId;

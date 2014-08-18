@@ -247,5 +247,7 @@ namespace LiveResults.Client
         public int ControlCode;
         public int Time;
         public int Place;
+        public int RelayLegTime;
+        public double Timestamp;
     }
 }

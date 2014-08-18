@@ -14,24 +14,24 @@ using System.Data.OleDb;
 
 namespace LiveResults.Client
 {
-    public partial class NewEtimingComp : Form
+    public partial class NewEtimingNightHawkComp : Form
     {
-        List<EmmaMysqlClient> m_Clients;
-        string SETTINGS_XML = "etiming-settings.xml" ;
+        List<EmmaMysqlNightHawkClient> m_Clients;
+        string SETTINGS_XML = "etiming-nighthawk-settings.xml" ;
 
         StreamWriter w ; 
 
-        EtimingParser pars;
+        EtimingNightHawkParser pars;
 
-        public NewEtimingComp()
+        public NewEtimingNightHawkComp()
         {
             InitializeComponent();
             Text = Text += ", " + Encoding.Default.EncodingName + "," + Encoding.Default.CodePage;
  
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EmmaClient");
-            m_Clients = new List<EmmaMysqlClient>();
+            m_Clients = new List<EmmaMysqlNightHawkClient>();
 
-            w = File.AppendText(Path.Combine(path, "log-emmaclient-hs.txt"));
+            w = File.AppendText(Path.Combine(path, "log-emmaclient-nighthawk.txt"));
 
             w.WriteLine("Startup.");
 
@@ -98,7 +98,7 @@ namespace LiveResults.Client
             Application.DoEvents();
             foreach (EmmaMysqlClient.EmmaServer server in servers)
             {
-                EmmaMysqlClient client = new EmmaMysqlClient(server.host, server.port, server.user, server.pw, server.db, Convert.ToInt32(txtCompID.Text));
+                EmmaMysqlNightHawkClient client = new EmmaMysqlNightHawkClient(server.host, server.port, server.user, server.pw, server.db, Convert.ToInt32(txtCompID.Text));
 
                 client.OnLogMessage += new LogMessageDelegate(client_OnLogMessage);
                 client.Start();
@@ -109,7 +109,7 @@ namespace LiveResults.Client
             logit("DSN; " + dsn);
             OleDbConnection m_Connection = new OleDbConnection(dsn);
 
-            pars = new EtimingParser(m_Connection, Convert.ToInt32(txtCompID.Text));
+            pars = new EtimingNightHawkParser(m_Connection, Convert.ToInt32(txtCompID.Text));
 
             pars.OnLogMessage += 
                 delegate(string msg)
@@ -125,7 +125,7 @@ namespace LiveResults.Client
 
         void m_Parser_OnResult(Result newResult)
         {
-            foreach (EmmaMysqlClient client in m_Clients)
+            foreach (EmmaMysqlNightHawkClient client in m_Clients)
             {
                 if (!client.IsRunnerAdded(newResult.ID))
                     client.AddRunner(new Runner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class));
@@ -179,7 +179,7 @@ namespace LiveResults.Client
         {
             if (m_Clients != null)
             {
-                foreach (EmmaMysqlClient c in m_Clients)
+                foreach (EmmaMysqlNightHawkClient c in m_Clients)
                 {
                     c.Stop();
                 }

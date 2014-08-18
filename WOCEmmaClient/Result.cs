@@ -16,8 +16,11 @@ namespace LiveResults.Client
         public int StartTime { get; set; }
         public int Time { get; set; }
         public int Status { get; set; }
-        public string Extra1 { get; set; }
-        public string Extra2 { get; set; }
+        public int RelayRestarts { get; set; }
+        public int RelayTeamId { get; set; }
+        public int RelayLeg { get; set; }
+        public int RelayLegTime { get; set; }
+        public double Timestamp { get; set; }
         public List<ResultStruct> SplitTimes { get; set; }
     }
 
