@@ -149,7 +149,9 @@ namespace LiveResults.Client
                     }
                     if (control == 1000)
                     {
-                        SetRunnerResult(dbid, time, (int)reader["status"], db2i(reader["relay_timestamp"]), db2i(reader["relay_legtime"]));
+                        SetRunnerResult(dbid, time, (int)reader["status"],  
+                               db2i(reader["relay_restarts"]), db2i(reader["relay_teamid"]), db2i(reader["relay_leg"]),
+                            db2i(reader["relay_leg_time"]),db2d(reader["relay_timestamp"]));
                         numResults++;
                     }
                     else if (control == 100)
@@ -160,7 +162,9 @@ namespace LiveResults.Client
                     else
                     {
                         numResults++;
-                        SetRunnerSplit(dbid, control, time, db2i(reader["relay_leg_time"]), db2i(reader["relay_timestamp"]));
+                        SetRunnerSplit(dbid, control, time, 
+                            db2i(reader["relay_leg_time"]),db2d(reader["relay_timestamp"])
+                            );
                     }
                     
                 }
@@ -183,7 +187,7 @@ namespace LiveResults.Client
             }
             
             m_Continue = true;
-            FireLogMsg("End of buffering");
+            FireLogMsg("End of buffering ***************");
             mainTh = new System.Threading.Thread(new System.Threading.ThreadStart(run));
             mainTh.Name = "Main MYSQL Thread [" + m_Connection.DataSource + "]";
             mainTh.Start();
@@ -194,6 +198,15 @@ namespace LiveResults.Client
             if (p != null)
             {
                 return Convert.ToInt16(p as string);
+            }
+            return 0;
+        }
+
+        private double db2d(object p)
+        {
+            if (p != null)
+            {
+                return Convert.ToDouble(p as string);
             }
             return 0;
         }
@@ -296,6 +309,12 @@ namespace LiveResults.Client
 
             NHRunner r = (NHRunner)m_Runners[runnerID];
 
+            if (relay_leg == 0)
+            {
+                FireLogMsg("Adding runner without leg");
+            }
+
+
             if (r.HasResultChanged(time, status))
             {
                 r.RelayTimestamp = timestamp;
@@ -312,8 +331,7 @@ namespace LiveResults.Client
             }
         }
 
-        public void SetRunnerSplit(int runnerID, int controlcode, int time, 
-                        int relay_restarts=0, int relay_team_id=0, int relay_leg=0, int relay_legtime=0, double timestamp=0.0)
+        public void SetRunnerSplit(int runnerID, int controlcode, int time,  int relay_legtime, double timestamp)
         {
             if (!IsRunnerAdded(runnerID))
                 throw new ApplicationException("Runner is not added! {" + runnerID + "} [SetRunnerResult]");
@@ -372,7 +390,7 @@ namespace LiveResults.Client
                 {
                     foreach (var s in spl)
                     {
-                        SetRunnerSplit(r.ID, s.Control, s.Time, r.RelayRestarts, r.RelayTeamId, r.RelayLeg, s.RelayLegTime, s.RelayTimestamp);
+                        SetRunnerSplit(r.ID, s.Control, s.Time,  s.RelayLegTime, s.RelayTimestamp);
                     }
                 }
             }
@@ -489,6 +507,11 @@ namespace LiveResults.Client
                                     foreach (NHSplitTime t in splitTimes)
                                     {
                                         FireLogMsg("About to update split " + t.Control + ", teamId " + r.RelayTeamId+", at  "+ r.RelayLeg+", " + r.RelayTeamId);
+                                        if (r.RelayLeg == 0)
+                                        {
+                                            FireLogMsg("WHAT!!! 0 relay leg");
+                                        }
+
                                         cmd.Parameters["?control"].Value = t.Control;
                                         cmd.Parameters["?time"].Value = t.Time;
                                         cmd.Parameters["?relaylegtime"].Value = t.RelayLegTime;

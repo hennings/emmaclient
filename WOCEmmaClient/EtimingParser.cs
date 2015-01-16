@@ -91,7 +91,7 @@ namespace LiveResults.Client
                             " (m.mintime-starttime) as mtime, mtime as mtime2, t.name as teamname, " +
                             " (select sum(intime-starttime) from name n2 where n.rank=n2.rank and n2.seed<n.seed) as relaytime " +
                             "FROM Name n, Class c, Team t, Mellom m, Relay r " +
-                            "WHERE n.id=m.id and n.class=c.code and t.code=r.lgteam AND mchanged>? AND iplace<999 AND n.rank=r.lgstartno   " +
+                            "WHERE n.id=m.id and n.class=c.code and t.code=r.lgteam AND m.timechanged>? AND iplace<999 AND n.rank=r.lgstartno   " +
                             "ORDER BY mintime ASC, startno";
 
                     }
@@ -104,7 +104,7 @@ namespace LiveResults.Client
 
                         splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.name as firstname , n.lisens,n.startno,c.class as classname, n.ecard,n.status,m.strtid,n.rank, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, (m.mintime-starttime) as mtime, t.name as teamname " +
                             "FROM Name n, Class c, Team t, Mellom m " +
-                            "WHERE n.id=m.id and n.class=c.code and t.code=n.team AND mchanged>? " +
+                            "WHERE n.id=m.id and n.class=c.code and t.code=n.team AND m.timechanged>? " +
                             "ORDER BY (mintime-starttime) ASC, startno";
                     }
 

@@ -128,7 +128,8 @@ namespace LiveResults.Client
             foreach (EmmaMysqlNightHawkClient client in m_Clients)
             {
                 if (!client.IsRunnerAdded(newResult.ID))
-                    client.AddRunner(new NHRunner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class));
+                    client.AddRunner(new NHRunner(newResult.ID, newResult.RunnerName, newResult.RunnerClub, newResult.Class,
+                        newResult.RelayRestarts, newResult.RelayTeamId, newResult.RelayLeg));
                 else
                     client.UpdateRunnerInfo(newResult.ID, newResult.RunnerName, newResult.RunnerClub, 
                         newResult.Class); //, newResult.RelayRestarts, newResult.RelayTeamId, newResult.RelayLeg, newResult.RelayLegTime, newResult.Timestamp);
@@ -148,8 +149,7 @@ namespace LiveResults.Client
                 {
                     foreach (NHResultStruct str in newResult.SplitTimes)
                     {
-                        client.SetRunnerSplit(newResult.ID, str.ControlCode, str.Time, newResult.RelayRestarts, 
-                            newResult.RelayTeamId, newResult.RelayLeg, str.RelayLegTime, str.Timestamp);
+                        client.SetRunnerSplit(newResult.ID, str.ControlCode, str.Time, str.RelayLegTime, str.Timestamp);
                     }
                 }
             }
@@ -235,6 +235,14 @@ namespace LiveResults.Client
             {
                 txtSystemMdb.Text = fileBrowserDialog2.FileName;
                 logit("SystemMdb = " + txtSystemMdb.Text);
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)
+        {
+            if (pars != null)
+            {
+                pars.ResetTimestamps();
             }
         }
     }

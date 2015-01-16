@@ -25,6 +25,10 @@ namespace LiveResults.Client
 
         private void FireOnResult(NHResult newResult)
         {
+            if (newResult.RelayLeg == 0)
+            {
+                FireLogMsg("*** What No Leg");
+            }
             if (OnResult != null)
             {
                 OnResult(newResult);
@@ -48,6 +52,15 @@ namespace LiveResults.Client
         public void Stop()
         {
             m_Continue = false;
+        }
+
+        double lastDateTime = 0.0;
+        double lastSplitDateTime = 0.0;
+
+        public void ResetTimestamps()
+        {
+            this.lastDateTime = 0.0;
+            this.lastSplitDateTime = 0.0;
         }
 
         private void run()
@@ -92,7 +105,7 @@ namespace LiveResults.Client
                             "(intime-starttime) as mtime,  t.name as teamname , " +
                             "(select sum(intime-starttime) from name n2 where n.rank=n2.rank and n2.seed<n.seed) as relaytime " +
                             "FROM Name n, Class c, Team t, Relay r  " +
-                            "WHERE n.class=c.code and t.code=r.lgteam AND (n.timechanged>@date or n.intime>@date or @date=0)  AND n.rank=r.lgstartno   " +
+                            "WHERE n.class=c.code and t.code=r.lgteam AND (n.timechanged>@date or n.intime>@date)  AND n.rank=r.lgstartno   " +
                             "ORDER BY intime ASC, startno";
 
                         splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.races as restart,r.teamno, " +
@@ -101,7 +114,7 @@ namespace LiveResults.Client
                             " (m.mintime-starttime) as mtime, mtime as mtime2, t.name as teamname, " +
                             " (select sum(intime-starttime) from name n2 where n.rank=n2.rank and n2.seed<n.seed) as relaytime " +
                             "FROM Name n, Class c, Team t, Mellom m, Relay r " +
-                            "WHERE n.id=m.id and n.class=c.code and t.code=r.lgteam AND mchanged>? AND iplace<999 AND n.rank=r.lgstartno   " +
+                            "WHERE n.id=m.id and n.class=c.code and t.code=r.lgteam AND (m.timechanged>@date) AND iplace<999 AND n.rank=r.lgstartno   " +
                             "ORDER BY mintime ASC, startno";
 
                     }
@@ -114,7 +127,7 @@ namespace LiveResults.Client
 
                         splitbaseCommand = "SELECT m.timechanged, n.id, n.ename as lastname,n.name as firstname , n.lisens,n.startno,c.class as classname, n.status,m.strtid,n.rank, n.seed,n.starttime, m.iplace, m.stasjon, m.mintime, (m.mintime-starttime) as mtime, t.name as teamname " +
                             "FROM Name n, Class c, Team t, Mellom m " +
-                            "WHERE n.id=m.id and n.class=c.code and t.code=n.team AND mchanged>? " +
+                            "WHERE n.id=m.id and n.class=c.code and t.code=n.team AND m.timechanged>? " +
                             "ORDER BY (mintime-starttime) ASC, startno";
                     }
 
@@ -146,8 +159,6 @@ namespace LiveResults.Client
                     cmdSplits.Parameters.Add(paramSplit);
 
 
-                    double lastDateTime = 0.0;
-                    double lastSplitDateTime = 0.0;
                     FireLogMsg("Etiming Monitor thread started");
                     IDataReader reader = null;
                     while (m_Continue)
@@ -179,6 +190,7 @@ namespace LiveResults.Client
                                     {
                                         modDate = Convert.ToDouble(reader[0]);
                                         if (modDate > lastDateTime) lastDateTime = modDate;
+                                        FireLogMsg("New lastDateTime " + modDate);
                                     }
 
                                     runnerID = Convert.ToInt32(reader["id"].ToString());
@@ -316,12 +328,15 @@ namespace LiveResults.Client
                             }
                             reader.Close();
 
+                            FireLogMsg("Processing splits");
+
 
                             (cmdSplits.Parameters["date"] as IDbDataParameter).Value = lastSplitDateTime;
                             FireLogMsg("Latest split date = " + lastSplitDateTime);
                             reader = cmdSplits.ExecuteReader();
                             while (reader.Read())
                             {
+                                FireLogMsg("Splits: " + reader[0]);
                                 double relayTeamTime = 0.0;
                                 int relayLegTime = 0;
                                 try
@@ -330,6 +345,10 @@ namespace LiveResults.Client
                                     // last modified time
 
                                     double modDate = Convert.ToDouble(reader[0]);
+                                    if (modDate > lastSplitDateTime)
+                                    {
+                                        FireLogMsg("New last split date " + lastSplitDateTime);
+                                    }
                                     lastSplitDateTime = (modDate > lastSplitDateTime ? modDate : lastSplitDateTime);
 
                                     int runnerID = 0;
@@ -380,11 +399,7 @@ namespace LiveResults.Client
                                     }
                                     int code = Convert.ToInt32(reader["iplace"]);
 
-                                    if (Convert.ToInt32(reader["id"]) == 229)
-                                    {
-                                        FireLogMsg("id 229");
-                                    }
-
+                                
 
                                     List<NHResultStruct> times = new List<NHResultStruct>();
                                     NHResultStruct t = new NHResultStruct();
@@ -392,13 +407,12 @@ namespace LiveResults.Client
                                     t.ControlNo = 0;
                                     t.Time = iMTime;
                                     t.Timestamp = mInTime;
-                                    if (isRelay) t.RelayLegTime = relayLegTime;
+                                    t.RelayLegTime = relayLegTime;
                                     times.Add(t);
 
 
 
-                                    if (isRelay)
-                                    {
+                                
                                         classN = classN + "-" + Convert.ToString(reader["seed"]);
 
                                         legNo = Convert.ToInt16(reader["seed"]);
@@ -418,7 +432,7 @@ namespace LiveResults.Client
                                             int teamno = Convert.ToInt16(reader["teamno"]);
                                             if (teamno > 1) club = club + " " + teamno;
                                         }
-                                    }
+                                   
 
                                     FireLogMsg("Runner " + fName + " " + famName + " used " + relayLegTime + ", arrived " + mInTime + " at leg " + legNo);
 
